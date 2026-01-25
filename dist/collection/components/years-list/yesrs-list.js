@@ -1,0 +1,80 @@
+import { h } from "@stencil/core";
+import moment from 'moment-hijri';
+export class YearsList {
+    constructor() {
+        this.minYear = 1356;
+        this.maxYear = 1500;
+    }
+    render() {
+        let yearsList = [];
+        let maxYear = this.maxYear;
+        if (this.maxDate) {
+            maxYear = moment(this.maxDate, 'iYYYY/iMM/iDD').iYear();
+        }
+        for (let i = this.minYear; i <= maxYear; i++) {
+            yearsList.push(h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
+        }
+        return h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
+    }
+    static get is() { return "years-list"; }
+    static get encapsulation() { return "shadow"; }
+    static get originalStyleUrls() { return {
+        "$": ["years-list.css"]
+    }; }
+    static get styleUrls() { return {
+        "$": ["years-list.css"]
+    }; }
+    static get properties() { return {
+        "currentTime": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "current-time",
+            "reflect": false
+        },
+        "handleYearChange": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "handle-year-change",
+            "reflect": false
+        },
+        "maxDate": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "max-date",
+            "reflect": false
+        }
+    }; }
+}

@@ -1,0 +1,17 @@
+{
+  "entries": [
+    "components\\date-calender\\date-calender.js",
+    "components\\datepicker-hijri\\datepicker-hijri.js",
+    "components\\months-list\\months-list.js",
+    "components\\years-list\\yesrs-list.js",
+    "components\\day-names\\day-names.js",
+    "components\\month-days\\month-days.js"
+  ],
+  "compiler": {
+    "name": "@stencil/core",
+    "version": "1.7.3",
+    "typescriptVersion": "3.6.3"
+  },
+  "collections": [],
+  "bundles": []
+}
