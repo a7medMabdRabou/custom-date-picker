@@ -7,12 +7,13 @@
 
 ## Properties
 
-| Property          | Attribute           | Description | Type  | Default     |
-| ----------------- | ------------------- | ----------- | ----- | ----------- |
-| `currentTime`     | `current-time`      |             | `any` | `undefined` |
-| `dateFormat`      | `date-format`       |             | `any` | `undefined` |
-| `selectedDate`    | `selected-date`     |             | `any` | `undefined` |
-| `setSelectedDate` | `set-selected-date` |             | `any` | `undefined` |
+| Property          | Attribute           | Description | Type     | Default     |
+| ----------------- | ------------------- | ----------- | -------- | ----------- |
+| `currentTime`     | `current-time`      |             | `any`    | `undefined` |
+| `dateFormat`      | `date-format`       |             | `any`    | `undefined` |
+| `maxDate`         | `max-date`          |             | `string` | `undefined` |
+| `selectedDate`    | `selected-date`     |             | `any`    | `undefined` |
+| `setSelectedDate` | `set-selected-date` |             | `any`    | `undefined` |
 
 
 ## Dependencies

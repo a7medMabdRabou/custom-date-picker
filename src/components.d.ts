@@ -18,12 +18,14 @@ export namespace Components {
     * The language code
     */
     'langCode': string;
+    'maxDate': string;
     'selectedDate': string;
     'setParentSelectedDate': any;
   }
   interface DatepickerHijri {
     'dateFormat': string;
     'langCode': string;
+    'maxDate': string;
     'onDateSelectClose': boolean;
     'placement': Placement;
     'reference': string;
@@ -38,16 +40,19 @@ export namespace Components {
   interface MonthDays {
     'currentTime': any;
     'dateFormat': any;
+    'maxDate': string;
     'selectedDate': any;
     'setSelectedDate': any;
   }
   interface MonthsList {
     'currentTime': any;
     'handleMonthChange': any;
+    'maxDate': string;
   }
   interface YearsList {
     'currentTime': any;
     'handleYearChange': any;
+    'maxDate': string;
   }
 }
 
@@ -106,12 +111,14 @@ declare namespace LocalJSX {
     * The language code
     */
     'langCode'?: string;
+    'maxDate'?: string;
     'selectedDate'?: string;
     'setParentSelectedDate'?: any;
   }
   interface DatepickerHijri {
     'dateFormat'?: string;
     'langCode'?: string;
+    'maxDate'?: string;
     'onDateSelectClose'?: boolean;
     'placement'?: Placement;
     'reference'?: string;
@@ -126,16 +133,19 @@ declare namespace LocalJSX {
   interface MonthDays {
     'currentTime'?: any;
     'dateFormat'?: any;
+    'maxDate'?: string;
     'selectedDate'?: any;
     'setSelectedDate'?: any;
   }
   interface MonthsList {
     'currentTime'?: any;
     'handleMonthChange'?: any;
+    'maxDate'?: string;
   }
   interface YearsList {
     'currentTime'?: any;
     'handleYearChange'?: any;
+    'maxDate'?: string;
   }
 
   interface IntrinsicElements {

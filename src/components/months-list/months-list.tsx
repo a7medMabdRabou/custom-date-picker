@@ -1,4 +1,5 @@
 import { Component, Prop, h } from '@stencil/core';
+import moment from 'moment-hijri';
 
 @Component({
   tag: 'months-list',
@@ -22,13 +23,21 @@ export class YearsList {
     {number: 11, name: 'ذو الحجة'},
   ];
 
+
   @Prop() currentTime;
   @Prop() handleMonthChange;
+  @Prop() maxDate: string;
 
   render() {
     let monthsList = []
 
     for (let i = 0; i < this.months.length; i++) {
+      if (this.maxDate) {
+        let maxDateMoment = moment(this.maxDate, 'iYYYY/iMM/iDD');
+        if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
+          continue;
+        }
+      }
       monthsList.push(
         <option key={this.months[i].number} value={this.months[i].number} selected={this.currentTime.iMonth() == this.months[i].number}>{this.months[i].name}</option>
       )

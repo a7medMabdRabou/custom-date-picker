@@ -9,15 +9,15 @@
 * Use CDN
 
 ```html 
-<script src="https://cdn.jsdelivr.net/gh/abublihi/datepicker-hijri@v1.1/build/datepicker-hijri.js"></script>
+<script src="https://unpkg.com/tabebek-custom-date@latest/dist/tabebekcustomdate/tabebekcustomdate.js"></script>
 ```
 * Download files
 
-1. Download all files in the `build` directory
-2. Include the script `datepicker-hijri.js` file like in the code below
+1. Download all files in the `dist/tabebekcustomdate` directory
+2. Include the script `tabebekcustomdate.js` file like in the code below
 
 ```html
-<script src="build/datepicker-hijri.js"></script>
+<script src="dist/tabebekcustomdate/tabebekcustomdate.js"></script>
 ```
 
 # Usage
@@ -30,6 +30,7 @@
 | date-format     |    no    | the date format, it is string, `default:` iYYYY/iMM/iDD, any format in [moment-hijri](https://github.com/xsoh/moment-hijri) will work|
 | selected-date   |    no    | the selected date it is string with the same format of `date-format` prop |
 | on-date-select-close   |    no    | if you want the datepicker to disapeare on chosing the date only add `on-date-select-close` |
+| max-date   |    no    | if you want to set a maximum date, it is string with the same format of `date-format` prop |
 
 
 ## Example

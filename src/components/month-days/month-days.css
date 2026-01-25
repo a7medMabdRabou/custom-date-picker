@@ -41,3 +41,13 @@
 .month-day-button:focus {
   outline: unset;
 }
+
+.month-day-button.disabled {
+  cursor: not-allowed;
+  background-color: #fdec;
+  color: #ccc;
+}
+
+.month-day.disabled:hover {
+  border: 1px solid #fff;
+}

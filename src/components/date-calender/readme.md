@@ -11,6 +11,7 @@
 | ----------------------- | -------------------------- | ----------------- | -------- | ----------------- |
 | `dateFormat`            | `date-format`              |                   | `string` | `'iYYYY/iMM/iDD'` |
 | `langCode`              | `lang-code`                | The language code | `string` | `'ar'`            |
+| `maxDate`               | `max-date`                 |                   | `string` | `undefined`       |
 | `selectedDate`          | `selected-date`            |                   | `string` | `''`              |
 | `setParentSelectedDate` | `set-parent-selected-date` |                   | `any`    | `undefined`       |
 

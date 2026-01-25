@@ -1,5 +1,5 @@
 {
-  "name": "datepicker-hijri",
+  "name": "tabebek-custom-date",
   "version": "0.0.1",
   "description": "Stencil Component Starter",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
   "types": "dist/types/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
-  "unpkg": "dist/datepicker-hijri/datepicker-hijri.js",
+  "unpkg": "dist/tabebekcustomdate/tabebekcustomdate.js",
   "files": [
     "dist/",
     "loader/"

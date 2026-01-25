@@ -1,4 +1,5 @@
 import { Component, Prop, h } from '@stencil/core';
+import moment from 'moment-hijri';
 
 @Component({
   tag: 'years-list',
@@ -12,11 +13,16 @@ export class YearsList {
 
   @Prop() currentTime;
   @Prop() handleYearChange;
+  @Prop() maxDate: string;
 
   render() {
     let yearsList = []
+    let maxYear = this.maxYear;
+    if (this.maxDate) {
+      maxYear = moment(this.maxDate, 'iYYYY/iMM/iDD').iYear();
+    }
 
-    for (let i = this.minYear; i <= this.maxYear; i++) {
+    for (let i = this.minYear; i <= maxYear; i++) {
       yearsList.push(
         <option key={i} value={i} selected={this.currentTime.iYear() == i}>{i}</option>
       )
