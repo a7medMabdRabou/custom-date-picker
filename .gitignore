@@ -1,4 +1,4 @@
-dist/
+# dist/ removed to allow CDN usage
 www/
 loader/
 
