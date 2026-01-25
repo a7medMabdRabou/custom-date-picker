@@ -40,6 +40,9 @@ export class DateCalender {
             this.selectedDate = selectedDate;
         };
     }
+    watchHandler(newValue) {
+        this.currentTime = moment(newValue, this.dateFormat);
+    }
     isAfterMaxMonth() {
         if (!this.maxDate)
             return false;
@@ -170,4 +173,8 @@ export class DateCalender {
     static get states() { return {
         "currentTime": {}
     }; }
+    static get watchers() { return [{
+            "propName": "selectedDate",
+            "methodName": "watchHandler"
+        }]; }
 }

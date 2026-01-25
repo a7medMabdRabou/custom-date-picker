@@ -1,24 +1,3 @@
-'use strict';
-
-function _interopNamespace(e) {
-  if (e && e.__esModule) { return e; } else {
-    var n = {};
-    if (e) {
-      Object.keys(e).forEach(function (k) {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () {
-            return e[k];
-          }
-        });
-      });
-    }
-    n['default'] = e;
-    return n;
-  }
-}
-
 const NAMESPACE = 'tabebekcustomdate';
 
 let queueCongestion = 0;
@@ -82,11 +61,11 @@ const loadModule = (cmpMeta, hostRef, hmrVersionId) => {
     if (module) {
         return module[exportName];
     }
-    return new Promise(function (resolve) { resolve(_interopNamespace(require(
+    return import(
     /* webpackInclude: /\.entry\.js$/ */
     /* webpackExclude: /\.system\.entry\.js$/ */
     /* webpackMode: "lazy" */
-    `./${bundleId}.entry.js${ ''}`))); }).then(importedModule => {
+    `./${bundleId}.entry.js${ ''}`).then(importedModule => {
         {
             moduleCache.set(bundleId, importedModule);
         }
@@ -196,7 +175,7 @@ const patchEsm = () => {
     // @ts-ignore
     if ( !(win.CSS && win.CSS.supports && win.CSS.supports('color', 'var(--c)'))) {
         // @ts-ignore
-        return new Promise(function (resolve) { resolve(require('./css-shim-978387b1-52a5db49.js')); }).then(() => {
+        return import('./css-shim-978387b1-1e75855f.js').then(() => {
             plt.$cssShim$ = win.__stencil_cssshim;
             if (plt.$cssShim$) {
                 return plt.$cssShim$.initShim();
@@ -210,7 +189,7 @@ const patchBrowser = async () => {
         plt.$cssShim$ = win.__stencil_cssshim;
     }
     // @ts-ignore
-    const importMeta = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('core-157d3fa8.js', document.baseURI).href));
+    const importMeta = "";
     const regex = new RegExp(`\/${NAMESPACE}(\\.esm)?\\.js($|\\?|#)`);
     const scriptElm = Array.from(doc.querySelectorAll('script')).find(s => (regex.test(s.src) ||
         s.getAttribute('data-stencil-namespace') === NAMESPACE));
@@ -223,7 +202,7 @@ const patchBrowser = async () => {
         patchDynamicImport(resourcesUrl.href);
         if (!window.customElements) {
             // @ts-ignore
-            await new Promise(function (resolve) { resolve(require('./dom-96781eef-e2cadb44.js')); });
+            await import('./dom-96781eef-a2fb04dd.js');
         }
         return Object.assign(Object.assign({}, opts), { resourcesUrl: resourcesUrl.href });
     }
@@ -983,6 +962,22 @@ const setValue = (ref, propName, newVal, cmpMeta) => {
         // set our new value!
         hostRef.$instanceValues$.set(propName, newVal);
         if ( instance) {
+            // get an array of method names of watch functions to call
+            if ( cmpMeta.$watchers$ && flags & 128 /* isWatchReady */) {
+                const watchMethods = cmpMeta.$watchers$[propName];
+                if (watchMethods) {
+                    // this instance is watching for when this property changed
+                    watchMethods.forEach(watchMethodName => {
+                        try {
+                            // fire off each of the watch methods that are watching this property
+                            instance[watchMethodName](newVal, oldVal, propName);
+                        }
+                        catch (e) {
+                            consoleError(e);
+                        }
+                    });
+                }
+            }
             if ( (flags & (2 /* hasRendered */ | 16 /* isQueuedForUpdate */)) === 2 /* hasRendered */) {
                 // looks like this value actually changed, so we've got work to do!
                 // but only if we've already rendered, otherwise just chill out
@@ -995,6 +990,9 @@ const setValue = (ref, propName, newVal, cmpMeta) => {
 };
 const proxyComponent = (Cstr, cmpMeta, flags) => {
     if ( cmpMeta.$members$) {
+        if ( Cstr.watchers) {
+            cmpMeta.$watchers$ = Cstr.watchers;
+        }
         // It's better to have a const than two Object.entries()
         const members = Object.entries(cmpMeta.$members$);
         const prototype = Cstr.prototype;
@@ -1095,6 +1093,12 @@ const initializeComponent = async (elm, hostRef, cmpMeta, hmrVersionId, Cstr) =>
                 endLoad();
             }
             if ( !Cstr.isProxied) {
+                // we'eve never proxied this Constructor before
+                // let's add the getters/setters to its prototype before
+                // the first time we create an instance of the implementation
+                {
+                    cmpMeta.$watchers$ = Cstr.watchers;
+                }
                 proxyComponent(Cstr, cmpMeta, 2 /* proxyState */);
                 Cstr.isProxied = true;
             }
@@ -1118,6 +1122,9 @@ const initializeComponent = async (elm, hostRef, cmpMeta, hmrVersionId, Cstr) =>
             {
                 hostRef.$flags$ &= ~8 /* isConstructingInstance */;
             }
+            {
+                hostRef.$flags$ |= 128 /* isWatchReady */;
+            }
             endNewInstance();
         }
         const scopeId =  getScopeId(cmpMeta.$tagName$);
@@ -1126,7 +1133,7 @@ const initializeComponent = async (elm, hostRef, cmpMeta, hmrVersionId, Cstr) =>
             // this component has styles but we haven't registered them yet
             let style = Cstr.style;
             if ( cmpMeta.$flags$ & 8 /* needsShadowDomShim */) {
-                style = await new Promise(function (resolve) { resolve(require('./shadow-css-4889ae62-03827a39.js')); }).then(m => m.scopeCss(style, scopeId, false));
+                style = await import('./shadow-css-4889ae62-23996f3f.js').then(m => m.scopeCss(style, scopeId, false));
             }
             registerStyle(scopeId, style, !!(cmpMeta.$flags$ & 1 /* shadowDomEncapsulation */));
             endRegisterStyles();
@@ -1247,6 +1254,9 @@ const bootstrapLazy = (lazyBundles, options = {}) => {
         {
             cmpMeta.$attrsToReflect$ = [];
         }
+        {
+            cmpMeta.$watchers$ = {};
+        }
         if ( !supportsShadowDom && cmpMeta.$flags$ & 1 /* shadowDomEncapsulation */) {
             cmpMeta.$flags$ |= 8 /* needsShadowDomShim */;
         }
@@ -1317,8 +1327,4 @@ const bootstrapLazy = (lazyBundles, options = {}) => {
     endBootstrap();
 };
 
-exports.bootstrapLazy = bootstrapLazy;
-exports.h = h;
-exports.patchBrowser = patchBrowser;
-exports.patchEsm = patchEsm;
-exports.registerInstance = registerInstance;
+export { patchEsm as a, bootstrapLazy as b, h, patchBrowser as p, registerInstance as r };

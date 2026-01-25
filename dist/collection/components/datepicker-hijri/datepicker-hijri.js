@@ -22,6 +22,10 @@ export class DatepickerHijri {
         };
     }
     handleOnfocus() {
+        const reference = document.querySelector('#' + this.reference);
+        if (reference && moment(reference.value, this.dateFormat)._isValid) {
+            this.selectedDate = reference.value;
+        }
         this.displayCalender = true;
     }
     handleOnClickOutSide(e) {

@@ -1,4 +1,4 @@
-import { r as registerInstance, h } from './core-7c75612d.js';
+import { r as registerInstance, h } from './core-ad82b70e.js';
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 function createCommonjsModule(fn, module) {
     return module = { exports: {} }, fn(module, module.exports), module.exports;
@@ -4793,6 +4793,9 @@ var DateCalender = /** @class */ (function () {
             _this_1.selectedDate = selectedDate;
         };
     }
+    DateCalender.prototype.watchHandler = function (newValue) {
+        this.currentTime = momentHijri(newValue, this.dateFormat);
+    };
     DateCalender.prototype.isAfterMaxMonth = function () {
         if (!this.maxDate)
             return false;
@@ -4810,6 +4813,15 @@ var DateCalender = /** @class */ (function () {
     DateCalender.prototype.render = function () {
         return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.maxDate }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.maxDate }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.maxDate }));
     };
+    Object.defineProperty(DateCalender, "watchers", {
+        get: function () {
+            return {
+                "selectedDate": ["watchHandler"]
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(DateCalender, "style", {
         get: function () { return ".date-calender{width:266px;direction:rtl;background:#fff;padding:15px;border:1px solid #ddd;margin-top:2px;font-family:serif;box-sizing:unset;-webkit-box-sizing:unset;font-size:14px;border-radius:4px;z-index:1000;color:#000!important}.date-calender-controls{direction:rtl;text-align:center}.control-button{position:absolute;border:0;font-weight:700;font-size:15px;cursor:pointer;background-color:#fff}.control-button:hover{color:#888}.control-button:focus{outline:unset}.previous-button{right:15px}.next-button{left:15px}"; },
         enumerable: true,
@@ -7299,6 +7311,10 @@ var DatepickerHijri = /** @class */ (function () {
         };
     }
     DatepickerHijri.prototype.handleOnfocus = function () {
+        var reference = document.querySelector('#' + this.reference);
+        if (reference && momentHijri(reference.value, this.dateFormat)._isValid) {
+            this.selectedDate = reference.value;
+        }
         this.displayCalender = true;
     };
     DatepickerHijri.prototype.handleOnClickOutSide = function (e) {

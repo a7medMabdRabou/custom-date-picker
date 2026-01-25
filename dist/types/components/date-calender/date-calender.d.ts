@@ -11,6 +11,7 @@ export declare class DateCalender {
     setParentSelectedDate: any;
     maxDate: string;
     currentTime: any;
+    watchHandler(newValue: string): void;
     subtractMonth: () => void;
     addMonth: () => void;
     setSelectedDate: (event: any) => void;

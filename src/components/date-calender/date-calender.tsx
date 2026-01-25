@@ -1,4 +1,4 @@
-import { Component, Prop, h, State } from '@stencil/core';
+import { Component, Prop, h, State, Watch } from '@stencil/core';
 import moment from 'moment-hijri';
 
 @Component({
@@ -22,6 +22,11 @@ export class DateCalender {
   @Prop({reflect: true}) maxDate: string;
 
   @State() currentTime = moment(this.selectedDate, this.dateFormat);
+
+  @Watch('selectedDate')
+  watchHandler(newValue: string) {
+    this.currentTime = moment(newValue, this.dateFormat);
+  }
 
   subtractMonth = () => {
     let currentTime = moment(this.currentTime.format(this.dateFormat), this.dateFormat);

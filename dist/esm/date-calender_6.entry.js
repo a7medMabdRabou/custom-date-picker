@@ -1,4 +1,4 @@
-import { r as registerInstance, h } from './core-7c75612d.js';
+import { r as registerInstance, h } from './core-ad82b70e.js';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -5590,6 +5590,9 @@ const DateCalender = class {
             this.selectedDate = selectedDate;
         };
     }
+    watchHandler(newValue) {
+        this.currentTime = momentHijri(newValue, this.dateFormat);
+    }
     isAfterMaxMonth() {
         if (!this.maxDate)
             return false;
@@ -5607,6 +5610,9 @@ const DateCalender = class {
     render() {
         return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.maxDate }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.maxDate }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.maxDate }));
     }
+    static get watchers() { return {
+        "selectedDate": ["watchHandler"]
+    }; }
     static get style() { return ".date-calender{width:266px;direction:rtl;background:#fff;padding:15px;border:1px solid #ddd;margin-top:2px;font-family:serif;box-sizing:unset;-webkit-box-sizing:unset;font-size:14px;border-radius:4px;z-index:1000;color:#000!important}.date-calender-controls{direction:rtl;text-align:center}.control-button{position:absolute;border:0;font-weight:700;font-size:15px;cursor:pointer;background-color:#fff}.control-button:hover{color:#888}.control-button:focus{outline:unset}.previous-button{right:15px}.next-button{left:15px}"; }
 };
 
@@ -8447,6 +8453,10 @@ const DatepickerHijri = class {
         };
     }
     handleOnfocus() {
+        const reference = document.querySelector('#' + this.reference);
+        if (reference && momentHijri(reference.value, this.dateFormat)._isValid) {
+            this.selectedDate = reference.value;
+        }
         this.displayCalender = true;
     }
     handleOnClickOutSide(e) {
