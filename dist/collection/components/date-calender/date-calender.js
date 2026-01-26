@@ -11,6 +11,7 @@ export class DateCalender {
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
+        this.disableFuture = false;
         this.currentTime = moment(this.selectedDate, this.dateFormat);
         this.subtractMonth = () => {
             let currentTime = moment(this.currentTime.format(this.dateFormat), this.dateFormat);
@@ -43,11 +44,22 @@ export class DateCalender {
     watchHandler(newValue) {
         this.currentTime = moment(newValue, this.dateFormat);
     }
+    getEffectiveMaxDate() {
+        let effectiveMaxDate = this.maxDate;
+        if (this.disableFuture) {
+            const today = moment().format(this.dateFormat);
+            if (!effectiveMaxDate || moment(today, this.dateFormat).isBefore(moment(effectiveMaxDate, this.dateFormat))) {
+                effectiveMaxDate = today;
+            }
+        }
+        return effectiveMaxDate;
+    }
     isAfterMaxMonth() {
-        if (!this.maxDate)
+        const effectiveMaxDate = this.getEffectiveMaxDate();
+        if (!effectiveMaxDate)
             return false;
         let nextMonth = moment(this.currentTime.format(this.dateFormat), this.dateFormat).add(1, 'iMonth').startOf('iMonth');
-        return nextMonth.isAfter(moment(this.maxDate, this.dateFormat), 'day');
+        return nextMonth.isAfter(moment(effectiveMaxDate, this.dateFormat), 'day');
     }
     getMonthStartDayName() {
         let time = this.currentTime;
@@ -67,10 +79,10 @@ export class DateCalender {
                     '>',
                     " "),
                 h("div", null,
-                    h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.maxDate }),
-                    h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.maxDate }))),
+                    h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate() }),
+                    h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate() }))),
             h("day-names", { langCode: this.langCode }),
-            h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.maxDate }));
+            h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }));
     }
     static get is() { return "date-calender"; }
     static get encapsulation() { return "shadow"; }
@@ -168,6 +180,24 @@ export class DateCalender {
             },
             "attribute": "max-date",
             "reflect": true
+        },
+        "disableFuture": {
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "disable-future",
+            "reflect": true,
+            "defaultValue": "false"
         }
     }; }
     static get states() { return {

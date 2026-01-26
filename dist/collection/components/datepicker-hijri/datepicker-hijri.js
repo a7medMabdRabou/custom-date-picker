@@ -9,6 +9,7 @@ export class DatepickerHijri {
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.onDateSelectClose = false;
+        this.disableFuture = false;
         this.displayCalender = false;
         this.setSelectedDate = (selectedDate, triggerEvent = true) => {
             this.selectedDate = selectedDate;
@@ -73,7 +74,7 @@ export class DatepickerHijri {
     }
     render() {
         return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } },
-            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate }));
+            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
     }
     static get is() { return "datepicker-hijri"; }
     static get properties() { return {
@@ -205,6 +206,24 @@ export class DatepickerHijri {
             },
             "attribute": "max-date",
             "reflect": true
+        },
+        "disableFuture": {
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "disable-future",
+            "reflect": true,
+            "defaultValue": "false"
         }
     }; }
     static get states() { return {

@@ -16,6 +16,7 @@ export class DatepickerHijri {
   @Prop({reflect: true}) dateFormat: string = 'iYYYY/iMM/iDD';
   @Prop() onDateSelectClose: boolean = false;
   @Prop({reflect: true}) maxDate: string;
+  @Prop({reflect: true}) disableFuture: boolean = false;
 
   @State() displayCalender: boolean = false;
   @State() calenderContainerId: string;
@@ -94,7 +95,7 @@ export class DatepickerHijri {
 
   render() {
     return <div id={this.calenderContainerId} style={{ 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px'}}>
-            <date-calender langCode={this.langCode} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setParentSelectedDate={this.setSelectedDate} maxDate={this.maxDate}></date-calender>
+            <date-calender langCode={this.langCode} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setParentSelectedDate={this.setSelectedDate} maxDate={this.maxDate} disableFuture={this.disableFuture}></date-calender>
       </div>
   }
 }

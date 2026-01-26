@@ -10,11 +10,13 @@ export declare class DateCalender {
     selectedDate: string;
     setParentSelectedDate: any;
     maxDate: string;
+    disableFuture: boolean;
     currentTime: any;
     watchHandler(newValue: string): void;
     subtractMonth: () => void;
     addMonth: () => void;
     setSelectedDate: (event: any) => void;
+    getEffectiveMaxDate(): string;
     isAfterMaxMonth(): any;
     getMonthStartDayName(): any;
     getMonthName(): string;

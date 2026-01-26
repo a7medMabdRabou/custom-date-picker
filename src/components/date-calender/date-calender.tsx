@@ -20,6 +20,7 @@ export class DateCalender {
   @Prop({reflect: true}) selectedDate: string = '';
   @Prop() setParentSelectedDate;
   @Prop({reflect: true}) maxDate: string;
+  @Prop({reflect: true}) disableFuture: boolean = false;
 
   @State() currentTime = moment(this.selectedDate, this.dateFormat);
 
@@ -47,10 +48,22 @@ export class DateCalender {
     this.setParentSelectedDate(this.selectedDate);
   }
 
+  getEffectiveMaxDate() {
+    let effectiveMaxDate = this.maxDate;
+    if (this.disableFuture) {
+      const today = moment().format(this.dateFormat);
+      if (!effectiveMaxDate || moment(today, this.dateFormat).isBefore(moment(effectiveMaxDate, this.dateFormat))) {
+        effectiveMaxDate = today;
+      }
+    }
+    return effectiveMaxDate;
+  }
+
   isAfterMaxMonth() {
-    if (!this.maxDate) return false;
+    const effectiveMaxDate = this.getEffectiveMaxDate();
+    if (!effectiveMaxDate) return false;
     let nextMonth = moment(this.currentTime.format(this.dateFormat), this.dateFormat).add(1, 'iMonth').startOf('iMonth');
-    return nextMonth.isAfter(moment(this.maxDate, this.dateFormat), 'day');
+    return nextMonth.isAfter(moment(effectiveMaxDate, this.dateFormat), 'day');
   }
 
   getMonthStartDayName() {
@@ -84,13 +97,13 @@ export class DateCalender {
       <strong class='month-name'>{this.getMonthName()}</strong>
       <button class='control-button next-button' onClick={this.addMonth} type="button" disabled={this.isAfterMaxMonth()}> {'>'} </button>
       <div>
-        <years-list currentTime={this.currentTime} handleYearChange={this.handleYearChange} maxDate={this.maxDate}></years-list>
-        <months-list currentTime={this.currentTime} handleMonthChange={this.handleMonthChange} maxDate={this.maxDate}></months-list>
+        <years-list currentTime={this.currentTime} handleYearChange={this.handleYearChange} maxDate={this.getEffectiveMaxDate()}></years-list>
+        <months-list currentTime={this.currentTime} handleMonthChange={this.handleMonthChange} maxDate={this.getEffectiveMaxDate()}></months-list>
 
       </div>
     </div>
     <day-names langCode={this.langCode}></day-names>
-    <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.maxDate}></month-days>
+    <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.getEffectiveMaxDate()}></month-days>
   </div>;
   }
 }

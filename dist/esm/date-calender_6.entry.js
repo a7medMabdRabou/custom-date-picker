@@ -5561,6 +5561,7 @@ const DateCalender = class {
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
+        this.disableFuture = false;
         this.currentTime = momentHijri(this.selectedDate, this.dateFormat);
         this.subtractMonth = () => {
             let currentTime = momentHijri(this.currentTime.format(this.dateFormat), this.dateFormat);
@@ -5593,11 +5594,22 @@ const DateCalender = class {
     watchHandler(newValue) {
         this.currentTime = momentHijri(newValue, this.dateFormat);
     }
+    getEffectiveMaxDate() {
+        let effectiveMaxDate = this.maxDate;
+        if (this.disableFuture) {
+            const today = momentHijri().format(this.dateFormat);
+            if (!effectiveMaxDate || momentHijri(today, this.dateFormat).isBefore(momentHijri(effectiveMaxDate, this.dateFormat))) {
+                effectiveMaxDate = today;
+            }
+        }
+        return effectiveMaxDate;
+    }
     isAfterMaxMonth() {
-        if (!this.maxDate)
+        const effectiveMaxDate = this.getEffectiveMaxDate();
+        if (!effectiveMaxDate)
             return false;
         let nextMonth = momentHijri(this.currentTime.format(this.dateFormat), this.dateFormat).add(1, 'iMonth').startOf('iMonth');
-        return nextMonth.isAfter(momentHijri(this.maxDate, this.dateFormat), 'day');
+        return nextMonth.isAfter(momentHijri(effectiveMaxDate, this.dateFormat), 'day');
     }
     getMonthStartDayName() {
         let time = this.currentTime;
@@ -5608,7 +5620,7 @@ const DateCalender = class {
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
     }
     render() {
-        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.maxDate }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.maxDate }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.maxDate }));
+        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate() }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate() }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }));
     }
     static get watchers() { return {
         "selectedDate": ["watchHandler"]
@@ -8440,6 +8452,7 @@ const DatepickerHijri = class {
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.onDateSelectClose = false;
+        this.disableFuture = false;
         this.displayCalender = false;
         this.setSelectedDate = (selectedDate, triggerEvent = true) => {
             this.selectedDate = selectedDate;
@@ -8503,7 +8516,7 @@ const DatepickerHijri = class {
         });
     }
     render() {
-        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate }));
+        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
     }
 };
 
