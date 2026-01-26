@@ -14,7 +14,7 @@ import {
 export namespace Components {
   interface DateCalender {
     'dateFormat': string;
-    'disableFuture': boolean;
+    'disableFuture': any;
     /**
     * The language code
     */
@@ -25,7 +25,7 @@ export namespace Components {
   }
   interface DatepickerHijri {
     'dateFormat': string;
-    'disableFuture': boolean;
+    'disableFuture': any;
     'langCode': string;
     'maxDate': string;
     'onDateSelectClose': boolean;
@@ -109,7 +109,7 @@ declare global {
 declare namespace LocalJSX {
   interface DateCalender {
     'dateFormat'?: string;
-    'disableFuture'?: boolean;
+    'disableFuture'?: any;
     /**
     * The language code
     */
@@ -120,7 +120,7 @@ declare namespace LocalJSX {
   }
   interface DatepickerHijri {
     'dateFormat'?: string;
-    'disableFuture'?: boolean;
+    'disableFuture'?: any;
     'langCode'?: string;
     'maxDate'?: string;
     'onDateSelectClose'?: boolean;

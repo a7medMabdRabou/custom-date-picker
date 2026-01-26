@@ -5600,7 +5600,8 @@ const DateCalender = class {
     }
     getEffectiveMaxDate() {
         let effectiveMaxDate = this.maxDate;
-        if (this.disableFuture) {
+        const isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '';
+        if (isFutureDisabled) {
             const today = momentHijri().format(this.dateFormat);
             if (!effectiveMaxDate || momentHijri(today, this.dateFormat).isBefore(momentHijri(effectiveMaxDate, this.dateFormat))) {
                 effectiveMaxDate = today;

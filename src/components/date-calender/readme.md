@@ -7,14 +7,14 @@
 
 ## Properties
 
-| Property                | Attribute                  | Description       | Type      | Default           |
-| ----------------------- | -------------------------- | ----------------- | --------- | ----------------- |
-| `dateFormat`            | `date-format`              |                   | `string`  | `'iYYYY/iMM/iDD'` |
-| `disableFuture`         | `disable-future`           |                   | `boolean` | `false`           |
-| `langCode`              | `lang-code`                | The language code | `string`  | `'ar'`            |
-| `maxDate`               | `max-date`                 |                   | `string`  | `undefined`       |
-| `selectedDate`          | `selected-date`            |                   | `string`  | `''`              |
-| `setParentSelectedDate` | `set-parent-selected-date` |                   | `any`     | `undefined`       |
+| Property                | Attribute                  | Description       | Type     | Default           |
+| ----------------------- | -------------------------- | ----------------- | -------- | ----------------- |
+| `dateFormat`            | `date-format`              |                   | `string` | `'iYYYY/iMM/iDD'` |
+| `disableFuture`         | `disable-future`           |                   | `any`    | `false`           |
+| `langCode`              | `lang-code`                | The language code | `string` | `'ar'`            |
+| `maxDate`               | `max-date`                 |                   | `string` | `undefined`       |
+| `selectedDate`          | `selected-date`            |                   | `string` | `''`              |
+| `setParentSelectedDate` | `set-parent-selected-date` |                   | `any`    | `undefined`       |
 
 
 ## Dependencies

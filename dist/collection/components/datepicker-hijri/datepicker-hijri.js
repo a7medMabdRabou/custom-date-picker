@@ -208,11 +208,11 @@ export class DatepickerHijri {
             "reflect": true
         },
         "disableFuture": {
-            "type": "boolean",
+            "type": "any",
             "mutable": false,
             "complexType": {
-                "original": "boolean",
-                "resolved": "boolean",
+                "original": "any",
+                "resolved": "any",
                 "references": {}
             },
             "required": false,

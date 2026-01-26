@@ -20,7 +20,7 @@ export class DateCalender {
   @Prop({reflect: true}) selectedDate: string = '';
   @Prop() setParentSelectedDate;
   @Prop({reflect: true}) maxDate: string;
-  @Prop({reflect: true}) disableFuture: boolean = false;
+  @Prop({reflect: true}) disableFuture: any = false;
 
   @State() currentTime = moment(this.selectedDate, this.dateFormat);
 
@@ -50,7 +50,9 @@ export class DateCalender {
 
   getEffectiveMaxDate() {
     let effectiveMaxDate = this.maxDate;
-    if (this.disableFuture) {
+    const isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '';
+    
+    if (isFutureDisabled) {
       const today = moment().format(this.dateFormat);
       if (!effectiveMaxDate || moment(today, this.dateFormat).isBefore(moment(effectiveMaxDate, this.dateFormat))) {
         effectiveMaxDate = today;

@@ -46,7 +46,8 @@ export class DateCalender {
     }
     getEffectiveMaxDate() {
         let effectiveMaxDate = this.maxDate;
-        if (this.disableFuture) {
+        const isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '';
+        if (isFutureDisabled) {
             const today = moment().format(this.dateFormat);
             if (!effectiveMaxDate || moment(today, this.dateFormat).isBefore(moment(effectiveMaxDate, this.dateFormat))) {
                 effectiveMaxDate = today;
@@ -182,11 +183,11 @@ export class DateCalender {
             "reflect": true
         },
         "disableFuture": {
-            "type": "boolean",
+            "type": "any",
             "mutable": false,
             "complexType": {
-                "original": "boolean",
-                "resolved": "boolean",
+                "original": "any",
+                "resolved": "any",
                 "references": {}
             },
             "required": false,

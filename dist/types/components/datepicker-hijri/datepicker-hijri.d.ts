@@ -7,7 +7,7 @@ export declare class DatepickerHijri {
     dateFormat: string;
     onDateSelectClose: boolean;
     maxDate: string;
-    disableFuture: boolean;
+    disableFuture: any;
     displayCalender: boolean;
     calenderContainerId: string;
     handleOnfocus(): void;

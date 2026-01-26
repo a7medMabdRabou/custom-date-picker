@@ -16,7 +16,7 @@ export class DatepickerHijri {
   @Prop({reflect: true}) dateFormat: string = 'iYYYY/iMM/iDD';
   @Prop() onDateSelectClose: boolean = false;
   @Prop({reflect: true}) maxDate: string;
-  @Prop({reflect: true}) disableFuture: boolean = false;
+  @Prop({reflect: true}) disableFuture: any = false;
 
   @State() displayCalender: boolean = false;
   @State() calenderContainerId: string;

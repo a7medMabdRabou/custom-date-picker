@@ -10,7 +10,7 @@ export declare class DateCalender {
     selectedDate: string;
     setParentSelectedDate: any;
     maxDate: string;
-    disableFuture: boolean;
+    disableFuture: any;
     currentTime: any;
     watchHandler(newValue: string): void;
     subtractMonth: () => void;

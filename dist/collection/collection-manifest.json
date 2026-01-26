@@ -1,11 +1,11 @@
 {
   "entries": [
-    "components\\datepicker-hijri\\datepicker-hijri.js",
     "components\\date-calender\\date-calender.js",
+    "components\\datepicker-hijri\\datepicker-hijri.js",
     "components\\month-days\\month-days.js",
     "components\\day-names\\day-names.js",
-    "components\\years-list\\yesrs-list.js",
-    "components\\months-list\\months-list.js"
+    "components\\months-list\\months-list.js",
+    "components\\years-list\\yesrs-list.js"
   ],
   "compiler": {
     "name": "@stencil/core",
