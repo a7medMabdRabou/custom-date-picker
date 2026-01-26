@@ -46,15 +46,18 @@ export class DateCalender {
     }
     getEffectiveMaxDate() {
         let effectiveMaxDate = this.maxDate;
-        const isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '' || this.disableFuture === 'disable-future';
+        // Check for any variant of "truthy" for disableFuture
+        const df = this.disableFuture;
+        const isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
         if (isFutureDisabled) {
-            const today = moment().startOf('day');
+            const today = moment().format(this.dateFormat);
             if (!effectiveMaxDate) {
-                return today.format(this.dateFormat);
+                return today;
             }
-            const maxDateMoment = moment(effectiveMaxDate, this.dateFormat).startOf('day');
-            if (today.isBefore(maxDateMoment)) {
-                return today.format(this.dateFormat);
+            const todayMoment = moment(today, this.dateFormat);
+            const maxMoment = moment(effectiveMaxDate, this.dateFormat);
+            if (todayMoment.isBefore(maxMoment, 'day')) {
+                return today;
             }
         }
         return effectiveMaxDate;
@@ -84,8 +87,8 @@ export class DateCalender {
                     '>',
                     " "),
                 h("div", null,
-                    h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate() }),
-                    h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate() }))),
+                    h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }),
+                    h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))),
             h("day-names", { langCode: this.langCode }),
             h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }));
     }

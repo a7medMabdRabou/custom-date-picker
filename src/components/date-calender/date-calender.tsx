@@ -50,17 +50,22 @@ export class DateCalender {
 
   getEffectiveMaxDate() {
     let effectiveMaxDate = this.maxDate;
-    const isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '' || this.disableFuture === 'disable-future';
+    
+    // Check for any variant of "truthy" for disableFuture
+    const df = this.disableFuture;
+    const isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
     
     if (isFutureDisabled) {
-      const today = moment().startOf('day');
+      const today = moment().format(this.dateFormat);
       if (!effectiveMaxDate) {
-        return today.format(this.dateFormat);
+        return today;
       }
       
-      const maxDateMoment = moment(effectiveMaxDate, this.dateFormat).startOf('day');
-      if (today.isBefore(maxDateMoment)) {
-        return today.format(this.dateFormat);
+      const todayMoment = moment(today, this.dateFormat);
+      const maxMoment = moment(effectiveMaxDate, this.dateFormat);
+      
+      if (todayMoment.isBefore(maxMoment, 'day')) {
+        return today;
       }
     }
     return effectiveMaxDate;
@@ -104,8 +109,8 @@ export class DateCalender {
       <strong class='month-name'>{this.getMonthName()}</strong>
       <button class='control-button next-button' onClick={this.addMonth} type="button" disabled={this.isAfterMaxMonth()}> {'>'} </button>
       <div>
-        <years-list currentTime={this.currentTime} handleYearChange={this.handleYearChange} maxDate={this.getEffectiveMaxDate()}></years-list>
-        <months-list currentTime={this.currentTime} handleMonthChange={this.handleMonthChange} maxDate={this.getEffectiveMaxDate()}></months-list>
+        <years-list currentTime={this.currentTime} handleYearChange={this.handleYearChange} maxDate={this.getEffectiveMaxDate()} dateFormat={this.dateFormat}></years-list>
+        <months-list currentTime={this.currentTime} handleMonthChange={this.handleMonthChange} maxDate={this.getEffectiveMaxDate()} dateFormat={this.dateFormat}></months-list>
 
       </div>
     </div>

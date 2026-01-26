@@ -6,7 +6,7 @@ import moment from 'moment-hijri';
   styleUrl: 'months-list.css',
   shadow: true
 })
-export class YearsList {
+export class MonthsList {
 
   months = [
     {number: 0, name: 'محرم'},
@@ -27,13 +27,14 @@ export class YearsList {
   @Prop() currentTime;
   @Prop() handleMonthChange;
   @Prop() maxDate: string;
+  @Prop() dateFormat: string = 'iYYYY/iMM/iDD';
 
   render() {
     let monthsList = []
 
     for (let i = 0; i < this.months.length; i++) {
       if (this.maxDate) {
-        let maxDateMoment = moment(this.maxDate, 'iYYYY/iMM/iDD');
+        let maxDateMoment = moment(this.maxDate, this.dateFormat);
         if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
           continue;
         }

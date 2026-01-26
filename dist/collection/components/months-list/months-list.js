@@ -1,6 +1,6 @@
 import { h } from "@stencil/core";
 import moment from 'moment-hijri';
-export class YearsList {
+export class MonthsList {
     constructor() {
         this.months = [
             { number: 0, name: 'محرم' },
@@ -16,12 +16,13 @@ export class YearsList {
             { number: 10, name: 'ذو القعدة' },
             { number: 11, name: 'ذو الحجة' },
         ];
+        this.dateFormat = 'iYYYY/iMM/iDD';
     }
     render() {
         let monthsList = [];
         for (let i = 0; i < this.months.length; i++) {
             if (this.maxDate) {
-                let maxDateMoment = moment(this.maxDate, 'iYYYY/iMM/iDD');
+                let maxDateMoment = moment(this.maxDate, this.dateFormat);
                 if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
                     continue;
                 }
@@ -89,6 +90,24 @@ export class YearsList {
             },
             "attribute": "max-date",
             "reflect": false
+        },
+        "dateFormat": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "date-format",
+            "reflect": false,
+            "defaultValue": "'iYYYY/iMM/iDD'"
         }
     }; }
 }

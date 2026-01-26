@@ -1,4 +1,4 @@
-export declare class YearsList {
+export declare class MonthsList {
     months: {
         number: number;
         name: string;
@@ -6,5 +6,6 @@ export declare class YearsList {
     currentTime: any;
     handleMonthChange: any;
     maxDate: string;
+    dateFormat: string;
     render(): any;
 }

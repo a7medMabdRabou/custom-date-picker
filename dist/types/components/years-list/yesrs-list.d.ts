@@ -4,5 +4,6 @@ export declare class YearsList {
     currentTime: any;
     handleYearChange: any;
     maxDate: string;
+    dateFormat: string;
     render(): any;
 }

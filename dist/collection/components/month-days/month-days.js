@@ -20,9 +20,15 @@ export class MonthDays {
     isAfterMaxDate(i) {
         if (!this.maxDate)
             return false;
-        let time = moment(this.currentTime.format(this.dateFormat), this.dateFormat);
-        time.iDate(parseInt(i, 10));
-        return time.isAfter(moment(this.maxDate, this.dateFormat), 'day');
+        // Use the current calendar year/month and set the day to i
+        let currentDayStr = this.currentTime.format('iYYYY/iMM/iDD');
+        let dayMoment = moment(currentDayStr, 'iYYYY/iMM/iDD');
+        dayMoment.iDate(parseInt(i, 10));
+        // Parse the max date string
+        let maxMoment = moment(this.maxDate, this.dateFormat);
+        if (!maxMoment.isValid())
+            return false;
+        return dayMoment.isAfter(maxMoment, 'day');
     }
     render() {
         let daysList = [];

@@ -7,11 +7,12 @@
 
 ## Properties
 
-| Property           | Attribute            | Description | Type     | Default     |
-| ------------------ | -------------------- | ----------- | -------- | ----------- |
-| `currentTime`      | `current-time`       |             | `any`    | `undefined` |
-| `handleYearChange` | `handle-year-change` |             | `any`    | `undefined` |
-| `maxDate`          | `max-date`           |             | `string` | `undefined` |
+| Property           | Attribute            | Description | Type     | Default           |
+| ------------------ | -------------------- | ----------- | -------- | ----------------- |
+| `currentTime`      | `current-time`       |             | `any`    | `undefined`       |
+| `dateFormat`       | `date-format`        |             | `string` | `'iYYYY/iMM/iDD'` |
+| `handleYearChange` | `handle-year-change` |             | `any`    | `undefined`       |
+| `maxDate`          | `max-date`           |             | `string` | `undefined`       |
 
 
 ## Dependencies

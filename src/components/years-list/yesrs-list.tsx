@@ -14,12 +14,13 @@ export class YearsList {
   @Prop() currentTime;
   @Prop() handleYearChange;
   @Prop() maxDate: string;
+  @Prop() dateFormat: string = 'iYYYY/iMM/iDD';
 
   render() {
     let yearsList = []
     let maxYear = this.maxYear;
     if (this.maxDate) {
-      maxYear = moment(this.maxDate, 'iYYYY/iMM/iDD').iYear();
+      maxYear = moment(this.maxDate, this.dateFormat).iYear();
     }
 
     for (let i = this.minYear; i <= maxYear; i++) {

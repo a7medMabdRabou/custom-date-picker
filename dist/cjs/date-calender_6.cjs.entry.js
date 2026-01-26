@@ -5600,15 +5600,18 @@ const DateCalender = class {
     }
     getEffectiveMaxDate() {
         let effectiveMaxDate = this.maxDate;
-        const isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '' || this.disableFuture === 'disable-future';
+        // Check for any variant of "truthy" for disableFuture
+        const df = this.disableFuture;
+        const isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
         if (isFutureDisabled) {
-            const today = momentHijri().startOf('day');
+            const today = momentHijri().format(this.dateFormat);
             if (!effectiveMaxDate) {
-                return today.format(this.dateFormat);
+                return today;
             }
-            const maxDateMoment = momentHijri(effectiveMaxDate, this.dateFormat).startOf('day');
-            if (today.isBefore(maxDateMoment)) {
-                return today.format(this.dateFormat);
+            const todayMoment = momentHijri(today, this.dateFormat);
+            const maxMoment = momentHijri(effectiveMaxDate, this.dateFormat);
+            if (todayMoment.isBefore(maxMoment, 'day')) {
+                return today;
             }
         }
         return effectiveMaxDate;
@@ -5629,7 +5632,7 @@ const DateCalender = class {
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
     }
     render() {
-        return core.h("div", { class: 'date-calender' }, core.h("div", { class: 'date-calender-controls' }, core.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), core.h("strong", { class: 'month-name' }, this.getMonthName()), core.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), core.h("div", null, core.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate() }), core.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate() }))), core.h("day-names", { langCode: this.langCode }), core.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }));
+        return core.h("div", { class: 'date-calender' }, core.h("div", { class: 'date-calender-controls' }, core.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), core.h("strong", { class: 'month-name' }, this.getMonthName()), core.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), core.h("div", null, core.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), core.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), core.h("day-names", { langCode: this.langCode }), core.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }));
     }
     static get watchers() { return {
         "selectedDate": ["watchHandler"]
@@ -8573,9 +8576,15 @@ const MonthDays = class {
     isAfterMaxDate(i) {
         if (!this.maxDate)
             return false;
-        let time = momentHijri(this.currentTime.format(this.dateFormat), this.dateFormat);
-        time.iDate(parseInt(i, 10));
-        return time.isAfter(momentHijri(this.maxDate, this.dateFormat), 'day');
+        // Use the current calendar year/month and set the day to i
+        let currentDayStr = this.currentTime.format('iYYYY/iMM/iDD');
+        let dayMoment = momentHijri(currentDayStr, 'iYYYY/iMM/iDD');
+        dayMoment.iDate(parseInt(i, 10));
+        // Parse the max date string
+        let maxMoment = momentHijri(this.maxDate, this.dateFormat);
+        if (!maxMoment.isValid())
+            return false;
+        return dayMoment.isAfter(maxMoment, 'day');
     }
     render() {
         let daysList = [];
@@ -8588,10 +8597,10 @@ const MonthDays = class {
         }
         return core.h("div", { class: 'month-days' }, daysList);
     }
-    static get style() { return ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset!important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid #000}.no-hover:hover{border:1px solid #fff!important}.month-day-button{cursor:pointer;border:0;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:#000!important;color:#fff!important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed;background-color:rgba(255,221,238,.8);color:#ccc}.month-day.disabled:hover{border:1px solid #fff}"; }
+    static get style() { return ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset!important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid #000}.no-hover:hover{border:1px solid #fff!important}.month-day-button{cursor:pointer;border:0;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:#000!important;color:#fff!important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed!important;background-color:#f5f5f5!important;color:#ccc!important;opacity:.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}"; }
 };
 
-const YearsList = class {
+const MonthsList = class {
     constructor(hostRef) {
         core.registerInstance(this, hostRef);
         this.months = [
@@ -8608,12 +8617,13 @@ const YearsList = class {
             { number: 10, name: 'ذو القعدة' },
             { number: 11, name: 'ذو الحجة' },
         ];
+        this.dateFormat = 'iYYYY/iMM/iDD';
     }
     render() {
         let monthsList = [];
         for (let i = 0; i < this.months.length; i++) {
             if (this.maxDate) {
-                let maxDateMoment = momentHijri(this.maxDate, 'iYYYY/iMM/iDD');
+                let maxDateMoment = momentHijri(this.maxDate, this.dateFormat);
                 if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
                     continue;
                 }
@@ -8625,17 +8635,18 @@ const YearsList = class {
     static get style() { return ".months-list{width:100px;background:transparent;height:25px;border-radius:4px;font-family:sans-serif;font-size:12px;border:1px solid #ddd;margin-left:4px;margin-top:5px}"; }
 };
 
-const YearsList$1 = class {
+const YearsList = class {
     constructor(hostRef) {
         core.registerInstance(this, hostRef);
         this.minYear = 1356;
         this.maxYear = 1500;
+        this.dateFormat = 'iYYYY/iMM/iDD';
     }
     render() {
         let yearsList = [];
         let maxYear = this.maxYear;
         if (this.maxDate) {
-            maxYear = momentHijri(this.maxDate, 'iYYYY/iMM/iDD').iYear();
+            maxYear = momentHijri(this.maxDate, this.dateFormat).iYear();
         }
         for (let i = this.minYear; i <= maxYear; i++) {
             yearsList.push(core.h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
@@ -8649,5 +8660,5 @@ exports.date_calender = DateCalender;
 exports.datepicker_hijri = DatepickerHijri;
 exports.day_names = DayNames;
 exports.month_days = MonthDays;
-exports.months_list = YearsList;
-exports.years_list = YearsList$1;
+exports.months_list = MonthsList;
+exports.years_list = YearsList;

@@ -48,11 +48,13 @@ export namespace Components {
   }
   interface MonthsList {
     'currentTime': any;
+    'dateFormat': string;
     'handleMonthChange': any;
     'maxDate': string;
   }
   interface YearsList {
     'currentTime': any;
+    'dateFormat': string;
     'handleYearChange': any;
     'maxDate': string;
   }
@@ -143,11 +145,13 @@ declare namespace LocalJSX {
   }
   interface MonthsList {
     'currentTime'?: any;
+    'dateFormat'?: string;
     'handleMonthChange'?: any;
     'maxDate'?: string;
   }
   interface YearsList {
     'currentTime'?: any;
+    'dateFormat'?: string;
     'handleYearChange'?: any;
     'maxDate'?: string;
   }
