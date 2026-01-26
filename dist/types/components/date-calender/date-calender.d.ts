@@ -16,7 +16,7 @@ export declare class DateCalender {
     subtractMonth: () => void;
     addMonth: () => void;
     setSelectedDate: (event: any) => void;
-    getEffectiveMaxDate(): string;
+    getEffectiveMaxDate(): any;
     isAfterMaxMonth(): any;
     getMonthStartDayName(): any;
     getMonthName(): string;

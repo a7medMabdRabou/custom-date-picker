@@ -4799,11 +4799,15 @@ var DateCalender = /** @class */ (function () {
     };
     DateCalender.prototype.getEffectiveMaxDate = function () {
         var effectiveMaxDate = this.maxDate;
-        var isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '';
+        var isFutureDisabled = this.disableFuture === true || this.disableFuture === 'true' || this.disableFuture === '' || this.disableFuture === 'disable-future';
         if (isFutureDisabled) {
-            var today = momentHijri().format(this.dateFormat);
-            if (!effectiveMaxDate || momentHijri(today, this.dateFormat).isBefore(momentHijri(effectiveMaxDate, this.dateFormat))) {
-                effectiveMaxDate = today;
+            var today = momentHijri().startOf('day');
+            if (!effectiveMaxDate) {
+                return today.format(this.dateFormat);
+            }
+            var maxDateMoment = momentHijri(effectiveMaxDate, this.dateFormat).startOf('day');
+            if (today.isBefore(maxDateMoment)) {
+                return today.format(this.dateFormat);
             }
         }
         return effectiveMaxDate;
