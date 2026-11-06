@@ -4775,6 +4775,8 @@ var DateCalender = /** @class */ (function () {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
         this.disableFuture = false;
+        this.disablePast = false;
+        this.hideToday = false;
         this.subtractMonth = function () {
             _this_1.currentTime = _this_1.currentTime.clone().subtract(1, 'iMonth');
         };
@@ -4864,6 +4866,37 @@ var DateCalender = /** @class */ (function () {
         }
         return effectiveMaxDate;
     };
+    DateCalender.prototype.getEffectiveMinDate = function () {
+        var effectiveMinDate = this.minDate;
+        var dp = this.disablePast;
+        var isPastDisabled = dp === true || dp === 'true' || dp === '' || dp === 'disable-past';
+        if (isPastDisabled) {
+            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" is enabled
+            var todayObj = momentHijri().add(1, 'day');
+            var today = todayObj.format(this.dateFormat);
+            if (!effectiveMinDate) {
+                return today;
+            }
+            var todayMoment = todayObj;
+            var minMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
+            if (!minMoment.isValid())
+                return today;
+            if (todayMoment.isAfter(minMoment, 'day')) {
+                return today;
+            }
+        }
+        return effectiveMinDate;
+    };
+    DateCalender.prototype.isBeforeMinMonth = function () {
+        var effectiveMinDate = this.getEffectiveMinDate();
+        if (!effectiveMinDate)
+            return false;
+        var minDateMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
+        if (!minDateMoment.isValid())
+            return false;
+        var prevMonth = this.currentTime.clone().subtract(1, 'iMonth').endOf('iMonth');
+        return prevMonth.isBefore(minDateMoment, 'day');
+    };
     DateCalender.prototype.isAfterMaxMonth = function () {
         var effectiveMaxDate = this.getEffectiveMaxDate();
         if (!effectiveMaxDate)
@@ -4884,8 +4917,14 @@ var DateCalender = /** @class */ (function () {
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
     };
     DateCalender.prototype.render = function () {
-        var todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
-        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor }), h("div", { class: 'date-calender-footer' }, h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: this.bgcolor ? { backgroundColor: this.bgcolor } : {} }, todayLabel)));
+        var isTodayHidden = this.hideToday === true || this.hideToday === 'true' || this.hideToday === '' || this.hideToday === 'hide-today';
+        var todayLabel = this.todayText || (this.langCode === 'ar' ? 'اليوم' : 'Today');
+        var todayBtnStyle = {};
+        if (this.bgcolor)
+            todayBtnStyle.backgroundColor = this.bgcolor;
+        if (this.textColor)
+            todayBtnStyle.color = this.textColor;
+        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }), !isTodayHidden && (h("div", { class: 'date-calender-footer' }, h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: todayBtnStyle }, todayLabel))));
     };
     Object.defineProperty(DateCalender, "watchers", {
         get: function () {
@@ -7368,6 +7407,10 @@ var DatepickerHijri = /** @class */ (function () {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.onDateSelectClose = true;
         this.disableFuture = false;
+        this.disablePast = false;
+        this.hideToday = false;
+        this.zIndex = '99999';
+        this.disabled = false;
         this.displayCalender = false;
         this.setSelectedDate = function (selectedDate, triggerEvent, closePicker) {
             if (triggerEvent === void 0) { triggerEvent = true; }
@@ -7402,6 +7445,8 @@ var DatepickerHijri = /** @class */ (function () {
         ];
     };
     DatepickerHijri.prototype.handleOnfocus = function () {
+        if (this.disabled === true || this.disabled === 'true' || this.disabled === '')
+            return;
         var reference = document.querySelector('#' + this.reference);
         if (reference) {
             var m = momentHijri(reference.value, this.getSupportedFormats(), true);
@@ -7482,6 +7527,13 @@ var DatepickerHijri = /** @class */ (function () {
         var reference = document.querySelector('#' + this.reference);
         if (!reference)
             return;
+        if (this.placeholder && !reference.getAttribute('placeholder')) {
+            reference.setAttribute('placeholder', this.placeholder);
+        }
+        if (this.disabled === true || this.disabled === 'true' || this.disabled === '') {
+            reference.disabled = true;
+            return;
+        }
         reference.addEventListener('focus', function () { return _this_1.handleOnfocus(); });
         reference.addEventListener('click', function () { return _this_1.handleOnfocus(); });
         var popperEl = document.getElementById(this.calenderContainerId);
@@ -7505,7 +7557,7 @@ var DatepickerHijri = /** @class */ (function () {
         tryAttach(0);
     };
     DatepickerHijri.prototype.render = function () {
-        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor }));
+        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, minDate: this.minDate, disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText }));
     };
     return DatepickerHijri;
 }());
@@ -7578,6 +7630,16 @@ var MonthDays = /** @class */ (function () {
             return false;
         return dayMoment.isAfter(maxMoment, 'day');
     };
+    MonthDays.prototype.isBeforeMinDate = function (i) {
+        if (!this.minDate)
+            return false;
+        var dayMoment = this.currentTime.clone();
+        dayMoment.iDate(parseInt(i, 10));
+        var minMoment = momentHijri(this.minDate, this.getFormats(), true);
+        if (!minMoment.isValid())
+            return false;
+        return dayMoment.isBefore(minMoment, 'day');
+    };
     MonthDays.prototype.render = function () {
         var daysList = [];
         for (var i_1 = this.englishDayNames.indexOf(this.getMonthStartDayName()); i_1 > 0; i_1--) {
@@ -7585,15 +7647,23 @@ var MonthDays = /** @class */ (function () {
         }
         for (var i_2 = 1; i_2 < this.monthDays() + 1; i_2++) {
             var isFuture = this.isAfterMaxDate(i_2);
+            var isPastDisabled = this.isBeforeMinDate(i_2);
+            var isDisabled = isFuture || isPastDisabled;
             var isSelected = this.isSelectedDate(i_2);
             var btnStyle = {};
             if (isSelected && this.selectedColor) {
                 btnStyle.backgroundColor = this.selectedColor;
             }
-            else if (!isSelected && !isFuture && this.bgcolor) {
+            else if (!isSelected && !isDisabled && this.bgcolor) {
                 btnStyle.backgroundColor = this.bgcolor;
             }
-            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i_2, type: "button", disabled: isFuture, style: btnStyle }, i_2)));
+            if (isSelected && this.selectedTextColor) {
+                btnStyle.color = this.selectedTextColor;
+            }
+            else if (!isSelected && !isDisabled && this.textColor) {
+                btnStyle.color = this.textColor;
+            }
+            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), key: daysList.length.toString() }, h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), onClick: this.setSelectedDate, value: i_2, type: "button", disabled: isDisabled, style: btnStyle }, i_2)));
         }
         return h("div", { class: 'month-days' }, daysList);
     };
@@ -7629,6 +7699,12 @@ var MonthsList = /** @class */ (function () {
                     continue;
                 }
             }
+            if (this.minDate) {
+                var minDateMoment = momentHijri(this.minDate, this.dateFormat);
+                if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i_3].number < minDateMoment.iMonth()) {
+                    continue;
+                }
+            }
             monthsList.push(h("option", { key: this.months[i_3].number, value: this.months[i_3].number, selected: this.currentTime.iMonth() == this.months[i_3].number }, this.months[i_3].name));
         }
         return h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
@@ -7647,10 +7723,14 @@ var YearsList = /** @class */ (function () {
     YearsList.prototype.render = function () {
         var yearsList = [];
         var maxYear = this.maxYear;
+        var minYear = this.minYear;
         if (this.maxDate) {
             maxYear = momentHijri(this.maxDate, this.dateFormat).iYear();
         }
-        for (var i_4 = this.minYear; i_4 <= maxYear; i_4++) {
+        if (this.minDate) {
+            minYear = momentHijri(this.minDate, this.dateFormat).iYear();
+        }
+        for (var i_4 = minYear; i_4 <= maxYear; i_4++) {
             yearsList.push(h("option", { key: i_4, value: i_4, selected: this.currentTime.iYear() == i_4 }, i_4));
         }
         return h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);

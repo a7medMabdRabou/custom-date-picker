@@ -6,6 +6,7 @@ export declare class MonthsList {
     currentTime: any;
     handleMonthChange: any;
     maxDate: string;
+    minDate: string;
     dateFormat: string;
     render(): any;
 }

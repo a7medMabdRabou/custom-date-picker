@@ -14,16 +14,21 @@ export class YearsList {
   @Prop() currentTime;
   @Prop() handleYearChange;
   @Prop() maxDate: string;
+  @Prop() minDate: string;
   @Prop() dateFormat: string = 'iYYYY/iMM/iDD';
 
   render() {
     let yearsList = []
     let maxYear = this.maxYear;
+    let minYear = this.minYear;
     if (this.maxDate) {
       maxYear = moment(this.maxDate, this.dateFormat).iYear();
     }
+    if (this.minDate) {
+      minYear = moment(this.minDate, this.dateFormat).iYear();
+    }
 
-    for (let i = this.minYear; i <= maxYear; i++) {
+    for (let i = minYear; i <= maxYear; i++) {
       yearsList.push(
         <option key={i} value={i} selected={this.currentTime.iYear() == i}>{i}</option>
       )

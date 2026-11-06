@@ -43,6 +43,16 @@ export class MonthDays {
             return false;
         return dayMoment.isAfter(maxMoment, 'day');
     }
+    isBeforeMinDate(i) {
+        if (!this.minDate)
+            return false;
+        let dayMoment = this.currentTime.clone();
+        dayMoment.iDate(parseInt(i, 10));
+        let minMoment = moment(this.minDate, this.getFormats(), true);
+        if (!minMoment.isValid())
+            return false;
+        return dayMoment.isBefore(minMoment, 'day');
+    }
     render() {
         let daysList = [];
         for (let i = this.englishDayNames.indexOf(this.getMonthStartDayName()); i > 0; i--) {
@@ -50,16 +60,24 @@ export class MonthDays {
         }
         for (let i = 1; i < this.monthDays() + 1; i++) {
             const isFuture = this.isAfterMaxDate(i);
+            const isPastDisabled = this.isBeforeMinDate(i);
+            const isDisabled = isFuture || isPastDisabled;
             const isSelected = this.isSelectedDate(i);
             let btnStyle = {};
             if (isSelected && this.selectedColor) {
                 btnStyle.backgroundColor = this.selectedColor;
             }
-            else if (!isSelected && !isFuture && this.bgcolor) {
+            else if (!isSelected && !isDisabled && this.bgcolor) {
                 btnStyle.backgroundColor = this.bgcolor;
             }
-            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() },
-                h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture, style: btnStyle }, i)));
+            if (isSelected && this.selectedTextColor) {
+                btnStyle.color = this.selectedTextColor;
+            }
+            else if (!isSelected && !isDisabled && this.textColor) {
+                btnStyle.color = this.textColor;
+            }
+            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), key: daysList.length.toString() },
+                h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isDisabled, style: btnStyle }, i)));
         }
         return h("div", { class: 'month-days' }, daysList);
     }
@@ -157,6 +175,23 @@ export class MonthDays {
             "attribute": "max-date",
             "reflect": false
         },
+        "minDate": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "min-date",
+            "reflect": true
+        },
         "bgcolor": {
             "type": "string",
             "mutable": false,
@@ -189,6 +224,40 @@ export class MonthDays {
                 "text": ""
             },
             "attribute": "selected-color",
+            "reflect": true
+        },
+        "textColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "text-color",
+            "reflect": true
+        },
+        "selectedTextColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "selected-text-color",
             "reflect": true
         }
     }; }

@@ -16,10 +16,19 @@ export class DatepickerHijri {
   @Prop({reflect: true}) dateFormat: string = 'iYYYY/iMM/iDD';
   @Prop() onDateSelectClose: any = true;
   @Prop({reflect: true}) maxDate: string;
+  @Prop({reflect: true}) minDate: string;
   @Prop({reflect: true}) disableFuture: any = false;
+  @Prop({reflect: true}) disablePast: any = false;
   @Prop({reflect: true}) bgcolor: string;
   @Prop({reflect: true}) bgColor: string;
   @Prop({reflect: true}) selectedColor: string;
+  @Prop({reflect: true}) textColor: string;
+  @Prop({reflect: true}) selectedTextColor: string;
+  @Prop({reflect: true}) hideToday: any = false;
+  @Prop({reflect: true}) todayText: string;
+  @Prop({reflect: true}) placeholder: string;
+  @Prop({reflect: true}) zIndex: string = '99999';
+  @Prop({reflect: true}) disabled: any = false;
 
   @State() displayCalender: boolean = false;
   @State() calenderContainerId: string;
@@ -46,6 +55,7 @@ export class DatepickerHijri {
 
   handleOnfocus()
   {
+    if (this.disabled === true || this.disabled === 'true' || this.disabled === '') return;
     const reference = document.querySelector('#'+this.reference) as HTMLInputElement;
     if (reference) {
       const m = moment(reference.value, this.getSupportedFormats(), true);
@@ -143,8 +153,17 @@ export class DatepickerHijri {
 
   private attachToReference() {
     if (!this.reference) return;
-    const reference = document.querySelector('#' + this.reference) as HTMLElement;
+    const reference = document.querySelector('#' + this.reference) as HTMLInputElement | null;
     if (!reference) return;
+
+    if (this.placeholder && !reference.getAttribute('placeholder')) {
+      reference.setAttribute('placeholder', this.placeholder);
+    }
+
+    if (this.disabled === true || this.disabled === 'true' || this.disabled === '') {
+      reference.disabled = true;
+      return;
+    }
 
     reference.addEventListener('focus', () => this.handleOnfocus());
     reference.addEventListener('click', () => this.handleOnfocus());
@@ -170,8 +189,23 @@ export class DatepickerHijri {
   }
 
   render() {
-    return <div id={this.calenderContainerId} style={{ 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px'}}>
-            <date-calender langCode={this.langCode} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setParentSelectedDate={this.setSelectedDate} maxDate={this.maxDate} disableFuture={this.disableFuture} bgcolor={this.getEffectiveBgColor()} selectedColor={this.selectedColor}></date-calender>
+    return <div id={this.calenderContainerId} style={{ 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px'}}>
+            <date-calender
+              langCode={this.langCode}
+              dateFormat={this.dateFormat}
+              selectedDate={this.selectedDate}
+              setParentSelectedDate={this.setSelectedDate}
+              maxDate={this.maxDate}
+              minDate={this.minDate}
+              disableFuture={this.disableFuture}
+              disablePast={this.disablePast}
+              bgcolor={this.getEffectiveBgColor()}
+              selectedColor={this.selectedColor}
+              textColor={this.textColor}
+              selectedTextColor={this.selectedTextColor}
+              hideToday={this.hideToday}
+              todayText={this.todayText}
+            ></date-calender>
       </div>
   }
 }

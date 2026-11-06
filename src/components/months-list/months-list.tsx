@@ -27,6 +27,7 @@ export class MonthsList {
   @Prop() currentTime;
   @Prop() handleMonthChange;
   @Prop() maxDate: string;
+  @Prop() minDate: string;
   @Prop() dateFormat: string = 'iYYYY/iMM/iDD';
 
   render() {
@@ -36,6 +37,12 @@ export class MonthsList {
       if (this.maxDate) {
         let maxDateMoment = moment(this.maxDate, this.dateFormat);
         if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
+          continue;
+        }
+      }
+      if (this.minDate) {
+        let minDateMoment = moment(this.minDate, this.dateFormat);
+        if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i].number < minDateMoment.iMonth()) {
           continue;
         }
       }

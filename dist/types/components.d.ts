@@ -11,27 +11,42 @@ export namespace Components {
         "bgcolor": string;
         "dateFormat": string;
         "disableFuture": any;
+        "disablePast": any;
+        "hideToday": any;
         /**
           * The language code
          */
         "langCode": string;
         "maxDate": string;
+        "minDate": string;
         "selectedColor": string;
         "selectedDate": string;
+        "selectedTextColor": string;
         "setParentSelectedDate": any;
+        "textColor": string;
+        "todayText": string;
     }
     interface DatepickerHijri {
         "bgColor": string;
         "bgcolor": string;
         "dateFormat": string;
         "disableFuture": any;
+        "disablePast": any;
+        "disabled": any;
+        "hideToday": any;
         "langCode": string;
         "maxDate": string;
+        "minDate": string;
         "onDateSelectClose": any;
+        "placeholder": string;
         "placement": Placement;
         "reference": string;
         "selectedColor": string;
         "selectedDate": string;
+        "selectedTextColor": string;
+        "textColor": string;
+        "todayText": string;
+        "zIndex": string;
     }
     interface DayNames {
         /**
@@ -44,21 +59,26 @@ export namespace Components {
         "currentTime": any;
         "dateFormat": any;
         "maxDate": string;
+        "minDate": string;
         "selectedColor": string;
         "selectedDate": any;
+        "selectedTextColor": string;
         "setSelectedDate": any;
+        "textColor": string;
     }
     interface MonthsList {
         "currentTime": any;
         "dateFormat": string;
         "handleMonthChange": any;
         "maxDate": string;
+        "minDate": string;
     }
     interface YearsList {
         "currentTime": any;
         "dateFormat": string;
         "handleYearChange": any;
         "maxDate": string;
+        "minDate": string;
     }
 }
 declare global {
@@ -112,27 +132,42 @@ declare namespace LocalJSX {
         "bgcolor"?: string;
         "dateFormat"?: string;
         "disableFuture"?: any;
+        "disablePast"?: any;
+        "hideToday"?: any;
         /**
           * The language code
          */
         "langCode"?: string;
         "maxDate"?: string;
+        "minDate"?: string;
         "selectedColor"?: string;
         "selectedDate"?: string;
+        "selectedTextColor"?: string;
         "setParentSelectedDate"?: any;
+        "textColor"?: string;
+        "todayText"?: string;
     }
     interface DatepickerHijri {
         "bgColor"?: string;
         "bgcolor"?: string;
         "dateFormat"?: string;
         "disableFuture"?: any;
+        "disablePast"?: any;
+        "disabled"?: any;
+        "hideToday"?: any;
         "langCode"?: string;
         "maxDate"?: string;
+        "minDate"?: string;
         "onDateSelectClose"?: any;
+        "placeholder"?: string;
         "placement"?: Placement;
         "reference"?: string;
         "selectedColor"?: string;
         "selectedDate"?: string;
+        "selectedTextColor"?: string;
+        "textColor"?: string;
+        "todayText"?: string;
+        "zIndex"?: string;
     }
     interface DayNames {
         /**
@@ -145,21 +180,26 @@ declare namespace LocalJSX {
         "currentTime"?: any;
         "dateFormat"?: any;
         "maxDate"?: string;
+        "minDate"?: string;
         "selectedColor"?: string;
         "selectedDate"?: any;
+        "selectedTextColor"?: string;
         "setSelectedDate"?: any;
+        "textColor"?: string;
     }
     interface MonthsList {
         "currentTime"?: any;
         "dateFormat"?: string;
         "handleMonthChange"?: any;
         "maxDate"?: string;
+        "minDate"?: string;
     }
     interface YearsList {
         "currentTime"?: any;
         "dateFormat"?: string;
         "handleYearChange"?: any;
         "maxDate"?: string;
+        "minDate"?: string;
     }
     interface IntrinsicElements {
         "date-calender": DateCalender;

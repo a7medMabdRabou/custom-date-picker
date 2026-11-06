@@ -13,6 +13,7 @@
 | `dateFormat`        | `date-format`         |             | `string` | `'iYYYY/iMM/iDD'` |
 | `handleMonthChange` | `handle-month-change` |             | `any`    | `undefined`       |
 | `maxDate`           | `max-date`            |             | `string` | `undefined`       |
+| `minDate`           | `min-date`            |             | `string` | `undefined`       |
 
 
 ## Dependencies

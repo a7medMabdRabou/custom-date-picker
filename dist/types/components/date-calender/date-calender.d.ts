@@ -10,9 +10,15 @@ export declare class DateCalender {
     selectedDate: string;
     setParentSelectedDate: any;
     maxDate: string;
+    minDate: string;
     disableFuture: any;
+    disablePast: any;
     bgcolor: string;
     selectedColor: string;
+    textColor: string;
+    selectedTextColor: string;
+    hideToday: any;
+    todayText: string;
     currentTime: any;
     componentWillLoad(): void;
     getFormats(): string[];
@@ -22,6 +28,8 @@ export declare class DateCalender {
     addMonth: () => void;
     setSelectedDate: (event: any) => void;
     getEffectiveMaxDate(): any;
+    getEffectiveMinDate(): any;
+    isBeforeMinMonth(): any;
     isAfterMaxMonth(): any;
     getMonthStartDayName(): any;
     getMonthName(): string;

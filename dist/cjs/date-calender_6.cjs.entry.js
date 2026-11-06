@@ -5578,6 +5578,8 @@ const DateCalender = class {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
         this.disableFuture = false;
+        this.disablePast = false;
+        this.hideToday = false;
         this.subtractMonth = () => {
             this.currentTime = this.currentTime.clone().subtract(1, 'iMonth');
         };
@@ -5667,6 +5669,37 @@ const DateCalender = class {
         }
         return effectiveMaxDate;
     }
+    getEffectiveMinDate() {
+        let effectiveMinDate = this.minDate;
+        const dp = this.disablePast;
+        const isPastDisabled = dp === true || dp === 'true' || dp === '' || dp === 'disable-past';
+        if (isPastDisabled) {
+            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" is enabled
+            const todayObj = momentHijri().add(1, 'day');
+            const today = todayObj.format(this.dateFormat);
+            if (!effectiveMinDate) {
+                return today;
+            }
+            const todayMoment = todayObj;
+            const minMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
+            if (!minMoment.isValid())
+                return today;
+            if (todayMoment.isAfter(minMoment, 'day')) {
+                return today;
+            }
+        }
+        return effectiveMinDate;
+    }
+    isBeforeMinMonth() {
+        const effectiveMinDate = this.getEffectiveMinDate();
+        if (!effectiveMinDate)
+            return false;
+        const minDateMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
+        if (!minDateMoment.isValid())
+            return false;
+        let prevMonth = this.currentTime.clone().subtract(1, 'iMonth').endOf('iMonth');
+        return prevMonth.isBefore(minDateMoment, 'day');
+    }
     isAfterMaxMonth() {
         const effectiveMaxDate = this.getEffectiveMaxDate();
         if (!effectiveMaxDate)
@@ -5687,8 +5720,14 @@ const DateCalender = class {
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
     }
     render() {
-        const todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
-        return index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor }), index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: this.bgcolor ? { backgroundColor: this.bgcolor } : {} }, todayLabel)));
+        const isTodayHidden = this.hideToday === true || this.hideToday === 'true' || this.hideToday === '' || this.hideToday === 'hide-today';
+        const todayLabel = this.todayText || (this.langCode === 'ar' ? 'اليوم' : 'Today');
+        let todayBtnStyle = {};
+        if (this.bgcolor)
+            todayBtnStyle.backgroundColor = this.bgcolor;
+        if (this.textColor)
+            todayBtnStyle.color = this.textColor;
+        return index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }), !isTodayHidden && (index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: todayBtnStyle }, todayLabel))));
     }
     static get watchers() { return {
         "selectedDate": ["watchHandler"]
@@ -8521,6 +8560,10 @@ const DatepickerHijri = class {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.onDateSelectClose = true;
         this.disableFuture = false;
+        this.disablePast = false;
+        this.hideToday = false;
+        this.zIndex = '99999';
+        this.disabled = false;
         this.displayCalender = false;
         this.setSelectedDate = (selectedDate, triggerEvent = true, closePicker = true) => {
             this.selectedDate = selectedDate;
@@ -8553,6 +8596,8 @@ const DatepickerHijri = class {
         ];
     }
     handleOnfocus() {
+        if (this.disabled === true || this.disabled === 'true' || this.disabled === '')
+            return;
         const reference = document.querySelector('#' + this.reference);
         if (reference) {
             const m = momentHijri(reference.value, this.getSupportedFormats(), true);
@@ -8632,6 +8677,13 @@ const DatepickerHijri = class {
         const reference = document.querySelector('#' + this.reference);
         if (!reference)
             return;
+        if (this.placeholder && !reference.getAttribute('placeholder')) {
+            reference.setAttribute('placeholder', this.placeholder);
+        }
+        if (this.disabled === true || this.disabled === 'true' || this.disabled === '') {
+            reference.disabled = true;
+            return;
+        }
         reference.addEventListener('focus', () => this.handleOnfocus());
         reference.addEventListener('click', () => this.handleOnfocus());
         const popperEl = document.getElementById(this.calenderContainerId);
@@ -8654,7 +8706,7 @@ const DatepickerHijri = class {
         tryAttach(0);
     }
     render() {
-        return index.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor }));
+        return index.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px' } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, minDate: this.minDate, disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText }));
     }
 };
 
@@ -8729,6 +8781,16 @@ const MonthDays = class {
             return false;
         return dayMoment.isAfter(maxMoment, 'day');
     }
+    isBeforeMinDate(i) {
+        if (!this.minDate)
+            return false;
+        let dayMoment = this.currentTime.clone();
+        dayMoment.iDate(parseInt(i, 10));
+        let minMoment = momentHijri(this.minDate, this.getFormats(), true);
+        if (!minMoment.isValid())
+            return false;
+        return dayMoment.isBefore(minMoment, 'day');
+    }
     render() {
         let daysList = [];
         for (let i = this.englishDayNames.indexOf(this.getMonthStartDayName()); i > 0; i--) {
@@ -8736,15 +8798,23 @@ const MonthDays = class {
         }
         for (let i = 1; i < this.monthDays() + 1; i++) {
             const isFuture = this.isAfterMaxDate(i);
+            const isPastDisabled = this.isBeforeMinDate(i);
+            const isDisabled = isFuture || isPastDisabled;
             const isSelected = this.isSelectedDate(i);
             let btnStyle = {};
             if (isSelected && this.selectedColor) {
                 btnStyle.backgroundColor = this.selectedColor;
             }
-            else if (!isSelected && !isFuture && this.bgcolor) {
+            else if (!isSelected && !isDisabled && this.bgcolor) {
                 btnStyle.backgroundColor = this.bgcolor;
             }
-            daysList.push(index.h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, index.h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture, style: btnStyle }, i)));
+            if (isSelected && this.selectedTextColor) {
+                btnStyle.color = this.selectedTextColor;
+            }
+            else if (!isSelected && !isDisabled && this.textColor) {
+                btnStyle.color = this.textColor;
+            }
+            daysList.push(index.h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), key: daysList.length.toString() }, index.h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isDisabled, style: btnStyle }, i)));
         }
         return index.h("div", { class: 'month-days' }, daysList);
     }
@@ -8781,6 +8851,12 @@ const MonthsList = class {
                     continue;
                 }
             }
+            if (this.minDate) {
+                let minDateMoment = momentHijri(this.minDate, this.dateFormat);
+                if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i].number < minDateMoment.iMonth()) {
+                    continue;
+                }
+            }
             monthsList.push(index.h("option", { key: this.months[i].number, value: this.months[i].number, selected: this.currentTime.iMonth() == this.months[i].number }, this.months[i].name));
         }
         return index.h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
@@ -8800,10 +8876,14 @@ const YearsList = class {
     render() {
         let yearsList = [];
         let maxYear = this.maxYear;
+        let minYear = this.minYear;
         if (this.maxDate) {
             maxYear = momentHijri(this.maxDate, this.dateFormat).iYear();
         }
-        for (let i = this.minYear; i <= maxYear; i++) {
+        if (this.minDate) {
+            minYear = momentHijri(this.minDate, this.dateFormat).iYear();
+        }
+        for (let i = minYear; i <= maxYear; i++) {
             yearsList.push(index.h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
         }
         return index.h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);

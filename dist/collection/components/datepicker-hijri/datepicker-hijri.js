@@ -10,6 +10,10 @@ export class DatepickerHijri {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.onDateSelectClose = true;
         this.disableFuture = false;
+        this.disablePast = false;
+        this.hideToday = false;
+        this.zIndex = '99999';
+        this.disabled = false;
         this.displayCalender = false;
         this.setSelectedDate = (selectedDate, triggerEvent = true, closePicker = true) => {
             this.selectedDate = selectedDate;
@@ -42,6 +46,8 @@ export class DatepickerHijri {
         ];
     }
     handleOnfocus() {
+        if (this.disabled === true || this.disabled === 'true' || this.disabled === '')
+            return;
         const reference = document.querySelector('#' + this.reference);
         if (reference) {
             const m = moment(reference.value, this.getSupportedFormats(), true);
@@ -121,6 +127,13 @@ export class DatepickerHijri {
         const reference = document.querySelector('#' + this.reference);
         if (!reference)
             return;
+        if (this.placeholder && !reference.getAttribute('placeholder')) {
+            reference.setAttribute('placeholder', this.placeholder);
+        }
+        if (this.disabled === true || this.disabled === 'true' || this.disabled === '') {
+            reference.disabled = true;
+            return;
+        }
         reference.addEventListener('focus', () => this.handleOnfocus());
         reference.addEventListener('click', () => this.handleOnfocus());
         const popperEl = document.getElementById(this.calenderContainerId);
@@ -143,8 +156,8 @@ export class DatepickerHijri {
         tryAttach(0);
     }
     render() {
-        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } },
-            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor }));
+        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px' } },
+            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, minDate: this.minDate, disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText }));
     }
     static get is() { return "datepicker-hijri"; }
     static get properties() { return {
@@ -277,6 +290,23 @@ export class DatepickerHijri {
             "attribute": "max-date",
             "reflect": true
         },
+        "minDate": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "min-date",
+            "reflect": true
+        },
         "disableFuture": {
             "type": "any",
             "mutable": false,
@@ -292,6 +322,24 @@ export class DatepickerHijri {
                 "text": ""
             },
             "attribute": "disable-future",
+            "reflect": true,
+            "defaultValue": "false"
+        },
+        "disablePast": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "disable-past",
             "reflect": true,
             "defaultValue": "false"
         },
@@ -345,6 +393,128 @@ export class DatepickerHijri {
             },
             "attribute": "selected-color",
             "reflect": true
+        },
+        "textColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "text-color",
+            "reflect": true
+        },
+        "selectedTextColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "selected-text-color",
+            "reflect": true
+        },
+        "hideToday": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "hide-today",
+            "reflect": true,
+            "defaultValue": "false"
+        },
+        "todayText": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "today-text",
+            "reflect": true
+        },
+        "placeholder": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "placeholder",
+            "reflect": true
+        },
+        "zIndex": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "z-index",
+            "reflect": true,
+            "defaultValue": "'99999'"
+        },
+        "disabled": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "disabled",
+            "reflect": true,
+            "defaultValue": "false"
         }
     }; }
     static get states() { return {

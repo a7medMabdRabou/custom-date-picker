@@ -216,15 +216,60 @@ In your template (`app.component.html`):
 | `date-format` | `dateFormat` | `string` | `'iYYYY/iMM/iDD'` | صيغة التاريخ الهجري (راجع [moment-hijri](https://github.com/xsoh/moment-hijri)). |
 | `selected-date` | `selectedDate` | `string` | `''` | التاريخ المحدد مبدئياً. |
 | `disable-future` | `disableFuture` | `boolean` | `false` | تعطيل اختيار التواريخ المستقبلية (اليوم هو الحد الأقصى). |
+| `disable-past` | `disablePast` | `boolean` | `false` | تعطيل اختيار التواريخ السابقة (اليوم هو الحد الأدنى - مناسب للحجوزات). |
 | `max-date` | `maxDate` | `string` | `undefined` | حد أقصى مخصص للتاريخ (أي تاريخ بعده يكون معطلاً). |
+| `min-date` | `minDate` | `string` | `undefined` | حد أدنى مخصص للتاريخ (أي تاريخ قبله يكون معطلاً). |
 | `on-date-select-close` | `onDateSelectClose` | `boolean` | `true` | إغلاق التقويم تلقائياً بمجرد اختيار التاريخ (مفعل افتراضياً). |
 | `bgcolor` | `bgcolor` | `string` | `'#f0f0f0'` | لون خلفية جميع خلايا التواريخ وزر "اليوم". |
 | `selectedColor` | `selectedColor` | `string` | `'black'` | لون خلفية التاريخ المحدد حالياً (`selected`). |
+| `textColor` | `textColor` | `string` | `'black'` | لون النص لأرقام الأيام وزر اليوم. |
+| `selectedTextColor` | `selectedTextColor` | `string` | `'white'` | لون النص للتاريخ المحدد حالياً. |
+| `hide-today` | `hideToday` | `boolean` | `false` | إخفاء زر "اليوم" من أسفل التقويم. |
+| `today-text` | `todayText` | `string` | `'اليوم'` / `'Today'` | نص مخصص لزر "اليوم". |
+| `placeholder` | `placeholder` | `string` | `undefined` | نص تلميحي (`placeholder`) يُضاف تلقائياً لحقل الإدخال المرتبط. |
+| `disabled` | `disabled` | `boolean` | `false` | تعطيل محدد التاريخ وحقل الإدخال بالكامل. |
+| `z-index` | `zIndex` | `string` | `'99999'` | ترتيب الطبقات (`z-index`) لحاوية التقويم المنبثقة. |
 | `lang-code` | `langCode` | `string` | `'ar'` | لغة العرض (`'ar'` للعربية أو `'en'` للإنجليزية). |
 
 ---
 
 ## 🛠️ Common Use Cases / سيناريوهات شائعة
+
+### منع التواريخ السابقة (مثل حجوزات الفنادق والرحلات):
+```html
+<input type="text" id="bookingDate" placeholder="تاريخ الحجز">
+<datepicker-hijri reference="bookingDate" disable-past placement="bottom"></datepicker-hijri>
+```
+
+### تحديد نطاق زمني (Min & Max Date):
+```html
+<input type="text" id="rangeDate" placeholder="اختر تاريخاً ضمن النطاق">
+<datepicker-hijri
+  reference="rangeDate"
+  min-date="1446/01/01"
+  max-date="1446/12/30"
+  placement="bottom"
+></datepicker-hijri>
+```
+
+### إخفاء زر اليوم وتعيين تلميح تلقائي (Placeholder):
+```html
+<input type="text" id="dobInput">
+<datepicker-hijri reference="dobInput" disable-future hide-today placeholder="اختر تاريخ الميلاد"></datepicker-hijri>
+```
+
+### تخصيص الألوان بالكامل (خلفية ونصوص):
+```html
+<input type="text" id="customTheme" placeholder="اختر التاريخ">
+<datepicker-hijri
+  reference="customTheme"
+  bgcolor="#1e293b"
+  textColor="#f8fafc"
+  selectedColor="#3b82f6"
+  selectedTextColor="#ffffff"
+  placement="bottom"
+></datepicker-hijri>
+```
 
 ### ألوان مخصصة لخلفية التواريخ والتاريخ المحدد (Custom Colors):
 ```html

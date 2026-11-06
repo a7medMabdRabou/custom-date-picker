@@ -38,13 +38,25 @@
     <label>Custom Colors (bgcolor="#e8f5e9" selectedColor="#2e7d32"):</label>
     <input type="text" id="color-input">
 
+    <label>Disable Past (Appointments / Future only):</label>
+    <input type="text" id="past-input">
+    <br/><br/>
+    <label>Min Date (1446/01/01) & Max Date (1446/12/30):</label>
+    <input type="text" id="range-input">
+    <br/><br/>
+    <label>Custom Placeholder & Hide Today:</label>
+    <input type="text" id="placeholder-input">
+
     <datepicker-hijri reference="calender" placement="bottom"  on-date-select-close></datepicker-hijri>
     <datepicker-hijri reference="calender2" placement="bottom" selected-date="1441/02/01"></datepicker-hijri>
     <datepicker-hijri reference="calender3" placement="right" date-format="iYYYY-iM-iD"></datepicker-hijri>
     
     <datepicker-hijri reference="future-input" placement="bottom" disable-future></datepicker-hijri>
     <datepicker-hijri reference="max-input" placement="bottom" max-date="1446/01/01"></datepicker-hijri>
-    <datepicker-hijri reference="color-input" placement="bottom" bgcolor="#e8f5e9" selectedColor="#2e7d32"></datepicker-hijri>
+    <datepicker-hijri reference="color-input" placement="bottom" bgcolor="#4FB6BB" selectedColor="#2e7d32"></datepicker-hijri>
+    <datepicker-hijri reference="past-input" placement="bottom" disable-past></datepicker-hijri>
+    <datepicker-hijri reference="range-input" placement="bottom" min-date="1446/01/01" max-date="1446/12/30"></datepicker-hijri>
+    <datepicker-hijri reference="placeholder-input" placement="bottom" placeholder="تاريخ بدون زر اليوم" hide-today></datepicker-hijri>
   </div>
 </body>
 </html>

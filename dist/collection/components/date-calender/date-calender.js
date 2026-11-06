@@ -12,6 +12,8 @@ export class DateCalender {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
         this.disableFuture = false;
+        this.disablePast = false;
+        this.hideToday = false;
         this.subtractMonth = () => {
             this.currentTime = this.currentTime.clone().subtract(1, 'iMonth');
         };
@@ -101,6 +103,37 @@ export class DateCalender {
         }
         return effectiveMaxDate;
     }
+    getEffectiveMinDate() {
+        let effectiveMinDate = this.minDate;
+        const dp = this.disablePast;
+        const isPastDisabled = dp === true || dp === 'true' || dp === '' || dp === 'disable-past';
+        if (isPastDisabled) {
+            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" is enabled
+            const todayObj = moment().add(1, 'day');
+            const today = todayObj.format(this.dateFormat);
+            if (!effectiveMinDate) {
+                return today;
+            }
+            const todayMoment = todayObj;
+            const minMoment = moment(effectiveMinDate, this.getFormats(), true);
+            if (!minMoment.isValid())
+                return today;
+            if (todayMoment.isAfter(minMoment, 'day')) {
+                return today;
+            }
+        }
+        return effectiveMinDate;
+    }
+    isBeforeMinMonth() {
+        const effectiveMinDate = this.getEffectiveMinDate();
+        if (!effectiveMinDate)
+            return false;
+        const minDateMoment = moment(effectiveMinDate, this.getFormats(), true);
+        if (!minDateMoment.isValid())
+            return false;
+        let prevMonth = this.currentTime.clone().subtract(1, 'iMonth').endOf('iMonth');
+        return prevMonth.isBefore(minDateMoment, 'day');
+    }
     isAfterMaxMonth() {
         const effectiveMaxDate = this.getEffectiveMaxDate();
         if (!effectiveMaxDate)
@@ -121,22 +154,28 @@ export class DateCalender {
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
     }
     render() {
-        const todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
+        const isTodayHidden = this.hideToday === true || this.hideToday === 'true' || this.hideToday === '' || this.hideToday === 'hide-today';
+        const todayLabel = this.todayText || (this.langCode === 'ar' ? 'اليوم' : 'Today');
+        let todayBtnStyle = {};
+        if (this.bgcolor)
+            todayBtnStyle.backgroundColor = this.bgcolor;
+        if (this.textColor)
+            todayBtnStyle.color = this.textColor;
         return h("div", { class: 'date-calender' },
             h("div", { class: 'date-calender-controls' },
-                h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'),
+                h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'),
                 h("strong", { class: 'month-name' }, this.getMonthName()),
                 h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() },
                     " ",
                     '>',
                     " "),
                 h("div", null,
-                    h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }),
-                    h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))),
+                    h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }),
+                    h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))),
             h("day-names", { langCode: this.langCode }),
-            h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor }),
-            h("div", { class: 'date-calender-footer' },
-                h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: this.bgcolor ? { backgroundColor: this.bgcolor } : {} }, todayLabel)));
+            h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }),
+            !isTodayHidden && (h("div", { class: 'date-calender-footer' },
+                h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: todayBtnStyle }, todayLabel))));
     }
     static get is() { return "date-calender"; }
     static get encapsulation() { return "shadow"; }
@@ -235,6 +274,23 @@ export class DateCalender {
             "attribute": "max-date",
             "reflect": true
         },
+        "minDate": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "min-date",
+            "reflect": true
+        },
         "disableFuture": {
             "type": "any",
             "mutable": false,
@@ -250,6 +306,24 @@ export class DateCalender {
                 "text": ""
             },
             "attribute": "disable-future",
+            "reflect": true,
+            "defaultValue": "false"
+        },
+        "disablePast": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "disable-past",
             "reflect": true,
             "defaultValue": "false"
         },
@@ -285,6 +359,75 @@ export class DateCalender {
                 "text": ""
             },
             "attribute": "selected-color",
+            "reflect": true
+        },
+        "textColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "text-color",
+            "reflect": true
+        },
+        "selectedTextColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "selected-text-color",
+            "reflect": true
+        },
+        "hideToday": {
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "hide-today",
+            "reflect": true,
+            "defaultValue": "false"
+        },
+        "todayText": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "today-text",
             "reflect": true
         }
     }; }

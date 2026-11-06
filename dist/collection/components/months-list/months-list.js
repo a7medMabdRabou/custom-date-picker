@@ -27,6 +27,12 @@ export class MonthsList {
                     continue;
                 }
             }
+            if (this.minDate) {
+                let minDateMoment = moment(this.minDate, this.dateFormat);
+                if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i].number < minDateMoment.iMonth()) {
+                    continue;
+                }
+            }
             monthsList.push(h("option", { key: this.months[i].number, value: this.months[i].number, selected: this.currentTime.iMonth() == this.months[i].number }, this.months[i].name));
         }
         return h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
@@ -89,6 +95,23 @@ export class MonthsList {
                 "text": ""
             },
             "attribute": "max-date",
+            "reflect": false
+        },
+        "minDate": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "min-date",
             "reflect": false
         },
         "dateFormat": {

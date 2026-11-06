@@ -20,9 +20,15 @@ export class DateCalender {
   @Prop({reflect: true}) selectedDate: string = '';
   @Prop() setParentSelectedDate;
   @Prop({reflect: true}) maxDate: string;
+  @Prop({reflect: true}) minDate: string;
   @Prop({reflect: true}) disableFuture: any = false;
+  @Prop({reflect: true}) disablePast: any = false;
   @Prop({reflect: true}) bgcolor: string;
   @Prop({reflect: true}) selectedColor: string;
+  @Prop({reflect: true}) textColor: string;
+  @Prop({reflect: true}) selectedTextColor: string;
+  @Prop({reflect: true}) hideToday: any = false;
+  @Prop({reflect: true}) todayText: string;
 
   @State() currentTime; 
 
@@ -100,6 +106,44 @@ export class DateCalender {
     return effectiveMaxDate;
   }
 
+  getEffectiveMinDate() {
+    let effectiveMinDate = this.minDate;
+
+    const dp = this.disablePast;
+    const isPastDisabled = dp === true || dp === 'true' || dp === '' || dp === 'disable-past';
+
+    if (isPastDisabled) {
+      // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" is enabled
+      const todayObj = moment().add(1, 'day');
+      const today = todayObj.format(this.dateFormat);
+
+      if (!effectiveMinDate) {
+        return today;
+      }
+
+      const todayMoment = todayObj;
+      const minMoment = moment(effectiveMinDate, this.getFormats(), true);
+
+      if (!minMoment.isValid()) return today;
+
+      if (todayMoment.isAfter(minMoment, 'day')) {
+        return today;
+      }
+    }
+    return effectiveMinDate;
+  }
+
+  isBeforeMinMonth() {
+    const effectiveMinDate = this.getEffectiveMinDate();
+    if (!effectiveMinDate) return false;
+
+    const minDateMoment = moment(effectiveMinDate, this.getFormats(), true);
+    if (!minDateMoment.isValid()) return false;
+
+    let prevMonth = this.currentTime.clone().subtract(1, 'iMonth').endOf('iMonth');
+    return prevMonth.isBefore(minDateMoment, 'day');
+  }
+
   isAfterMaxMonth() {
     const effectiveMaxDate = this.getEffectiveMaxDate();
     if (!effectiveMaxDate) return false;
@@ -156,25 +200,32 @@ export class DateCalender {
   }
 
   render() {
-    const todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
+    const isTodayHidden = this.hideToday === true || this.hideToday === 'true' || this.hideToday === '' || this.hideToday === 'hide-today';
+    const todayLabel = this.todayText || (this.langCode === 'ar' ? 'اليوم' : 'Today');
+
+    let todayBtnStyle: any = {};
+    if (this.bgcolor) todayBtnStyle.backgroundColor = this.bgcolor;
+    if (this.textColor) todayBtnStyle.color = this.textColor;
 
     return <div class='date-calender'>
     <div class='date-calender-controls'>
-      <button class='control-button previous-button' onClick={this.subtractMonth} type="button">{'<'}</button>
+      <button class='control-button previous-button' onClick={this.subtractMonth} type="button" disabled={this.isBeforeMinMonth()}>{'<'}</button>
       <strong class='month-name'>{this.getMonthName()}</strong>
       <button class='control-button next-button' onClick={this.addMonth} type="button" disabled={this.isAfterMaxMonth()}> {'>'} </button>
       <div>
-        <years-list currentTime={this.currentTime} handleYearChange={this.handleYearChange} maxDate={this.getEffectiveMaxDate()} dateFormat={this.dateFormat}></years-list>
-        <months-list currentTime={this.currentTime} handleMonthChange={this.handleMonthChange} maxDate={this.getEffectiveMaxDate()} dateFormat={this.dateFormat}></months-list>
+        <years-list currentTime={this.currentTime} handleYearChange={this.handleYearChange} maxDate={this.getEffectiveMaxDate()} minDate={this.getEffectiveMinDate()} dateFormat={this.dateFormat}></years-list>
+        <months-list currentTime={this.currentTime} handleMonthChange={this.handleMonthChange} maxDate={this.getEffectiveMaxDate()} minDate={this.getEffectiveMinDate()} dateFormat={this.dateFormat}></months-list>
 
       </div>
     </div>
     <day-names langCode={this.langCode}></day-names>
-    <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.getEffectiveMaxDate()} bgcolor={this.bgcolor} selectedColor={this.selectedColor}></month-days>
+    <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.getEffectiveMaxDate()} minDate={this.getEffectiveMinDate()} bgcolor={this.bgcolor} selectedColor={this.selectedColor} textColor={this.textColor} selectedTextColor={this.selectedTextColor}></month-days>
     
-    <div class='date-calender-footer'>
-      <button class='today-button' onClick={this.selectToday} type="button" style={this.bgcolor ? { backgroundColor: this.bgcolor } : {}}>{todayLabel}</button>
-    </div>
+    {!isTodayHidden && (
+      <div class='date-calender-footer'>
+        <button class='today-button' onClick={this.selectToday} type="button" style={todayBtnStyle}>{todayLabel}</button>
+      </div>
+    )}
   </div>;
   }
 }

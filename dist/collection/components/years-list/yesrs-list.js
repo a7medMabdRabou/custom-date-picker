@@ -9,10 +9,14 @@ export class YearsList {
     render() {
         let yearsList = [];
         let maxYear = this.maxYear;
+        let minYear = this.minYear;
         if (this.maxDate) {
             maxYear = moment(this.maxDate, this.dateFormat).iYear();
         }
-        for (let i = this.minYear; i <= maxYear; i++) {
+        if (this.minDate) {
+            minYear = moment(this.minDate, this.dateFormat).iYear();
+        }
+        for (let i = minYear; i <= maxYear; i++) {
             yearsList.push(h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
         }
         return h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
@@ -75,6 +79,23 @@ export class YearsList {
                 "text": ""
             },
             "attribute": "max-date",
+            "reflect": false
+        },
+        "minDate": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "min-date",
             "reflect": false
         },
         "dateFormat": {

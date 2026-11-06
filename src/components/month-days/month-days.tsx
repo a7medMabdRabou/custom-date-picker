@@ -15,8 +15,11 @@ export class MonthDays {
   @Prop() dateFormat;
   @Prop() selectedDate;
   @Prop() maxDate: string;
+  @Prop({reflect: true}) minDate: string;
   @Prop({reflect: true}) bgcolor: string;
   @Prop({reflect: true}) selectedColor: string;
+  @Prop({reflect: true}) textColor: string;
+  @Prop({reflect: true}) selectedTextColor: string;
 
   getFormats() {
     return [
@@ -62,6 +65,18 @@ export class MonthDays {
     return dayMoment.isAfter(maxMoment, 'day');
   }
 
+  isBeforeMinDate(i) {
+    if (!this.minDate) return false;
+
+    let dayMoment = this.currentTime.clone();
+    dayMoment.iDate(parseInt(i, 10));
+
+    let minMoment = moment(this.minDate, this.getFormats(), true);
+    if (!minMoment.isValid()) return false;
+
+    return dayMoment.isBefore(minMoment, 'day');
+  }
+
   render() {
     let daysList = []
     for (let i = this.englishDayNames.indexOf(this.getMonthStartDayName()); i > 0; i--){
@@ -71,22 +86,31 @@ export class MonthDays {
     }
     for (let i = 1; i < this.monthDays() + 1; i++) {
       const isFuture = this.isAfterMaxDate(i);
+      const isPastDisabled = this.isBeforeMinDate(i);
+      const isDisabled = isFuture || isPastDisabled;
       const isSelected = this.isSelectedDate(i);
       let btnStyle: any = {};
+
       if (isSelected && this.selectedColor) {
         btnStyle.backgroundColor = this.selectedColor;
-      } else if (!isSelected && !isFuture && this.bgcolor) {
+      } else if (!isSelected && !isDisabled && this.bgcolor) {
         btnStyle.backgroundColor = this.bgcolor;
       }
 
+      if (isSelected && this.selectedTextColor) {
+        btnStyle.color = this.selectedTextColor;
+      } else if (!isSelected && !isDisabled && this.textColor) {
+        btnStyle.color = this.textColor;
+      }
+
       daysList.push(
-        <div class={'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : '')} key={daysList.length.toString()}>
+        <div class={'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : '')} key={daysList.length.toString()}>
           <button
-            class={'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : '')}
+            class={'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : '')}
             onClick={this.setSelectedDate}
             value={i}
             type="button"
-            disabled={isFuture}
+            disabled={isDisabled}
             style={btnStyle}
           >{i}</button>
         </div>
