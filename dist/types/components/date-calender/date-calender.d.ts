@@ -12,6 +12,9 @@ export declare class DateCalender {
     maxDate: string;
     disableFuture: any;
     currentTime: any;
+    componentWillLoad(): void;
+    getFormats(): string[];
+    getMoment(dateStr: any): any;
     watchHandler(newValue: string): void;
     subtractMonth: () => void;
     addMonth: () => void;
@@ -22,5 +25,6 @@ export declare class DateCalender {
     getMonthName(): string;
     handleYearChange: (event: any) => void;
     handleMonthChange: (event: any) => void;
+    selectToday: () => void;
     render(): any;
 }

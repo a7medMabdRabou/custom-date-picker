@@ -22,30 +22,52 @@ export class DateCalender {
   @Prop({reflect: true}) maxDate: string;
   @Prop({reflect: true}) disableFuture: any = false;
 
-  @State() currentTime = moment(this.selectedDate, this.dateFormat);
+  @State() currentTime; 
+
+  componentWillLoad() {
+    this.currentTime = this.getMoment(this.selectedDate);
+  }
+
+  getFormats() {
+    return [
+      this.dateFormat,
+      'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
+      'iYYYY-iM-iD', 'iYYYY/iM/iD',
+      'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
+      'iD-iM-iYYYY', 'iD/iM/iYYYY',
+      'iYYYY-iD-iM', 'iYYYY/iD/iM'
+    ];
+  }
+
+  getMoment(dateStr) {
+    if (!dateStr) return moment();
+    const m = moment(dateStr, this.getFormats(), true);
+    return m.isValid() ? m : moment();
+  }
 
   @Watch('selectedDate')
   watchHandler(newValue: string) {
-    this.currentTime = moment(newValue, this.dateFormat);
+    this.currentTime = this.getMoment(newValue);
   }
 
   subtractMonth = () => {
-    let currentTime = moment(this.currentTime.format(this.dateFormat), this.dateFormat);
-    this.currentTime = currentTime.subtract(1, 'iMonth');
+    this.currentTime = this.currentTime.clone().subtract(1, 'iMonth');
   }
 
   addMonth = () => {
-    let currentTime = moment(this.currentTime.format(this.dateFormat), this.dateFormat);
-    this.currentTime = currentTime.add(1, 'iMonth');
+    this.currentTime = this.currentTime.clone().add(1, 'iMonth');
   }
 
   setSelectedDate = (event) => {
-    let time = this.currentTime;
+    let time = this.currentTime.clone();
     time.iDate(parseInt(event.target.value, 10));
     const selectedDate = time.format(this.dateFormat);
-    this.selectedDate = selectedDate;
-
-    this.setParentSelectedDate(this.selectedDate);
+    
+    // We shouldn't mutate the prop directly if not intended, but keeping consistent with existing logic pattern
+    // However, setParentSelectedDate is the key.
+    if (this.setParentSelectedDate) {
+      this.setParentSelectedDate(selectedDate, true, true);
+    }
   }
 
   getEffectiveMaxDate() {
@@ -56,14 +78,19 @@ export class DateCalender {
     const isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
     
     if (isFutureDisabled) {
-      const today = moment().format(this.dateFormat);
+      // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" (21st) is enabled
+      const todayObj = moment().add(1, 'day');
+      const today = todayObj.format(this.dateFormat);
+      
       if (!effectiveMaxDate) {
         return today;
       }
       
-      const todayMoment = moment(today, this.dateFormat);
-      const maxMoment = moment(effectiveMaxDate, this.dateFormat);
+      const todayMoment = todayObj;
+      const maxMoment = moment(effectiveMaxDate, this.getFormats(), true);
       
+      if (!maxMoment.isValid()) return today;
+
       if (todayMoment.isBefore(maxMoment, 'day')) {
         return today;
       }
@@ -74,8 +101,13 @@ export class DateCalender {
   isAfterMaxMonth() {
     const effectiveMaxDate = this.getEffectiveMaxDate();
     if (!effectiveMaxDate) return false;
-    let nextMonth = moment(this.currentTime.format(this.dateFormat), this.dateFormat).add(1, 'iMonth').startOf('iMonth');
-    return nextMonth.isAfter(moment(effectiveMaxDate, this.dateFormat), 'day');
+    
+    // Check if the max date is valid
+    const maxDateMoment = moment(effectiveMaxDate, this.getFormats(), true);
+    if (!maxDateMoment.isValid()) return false;
+
+    let nextMonth = this.currentTime.clone().add(1, 'iMonth').startOf('iMonth');
+    return nextMonth.isAfter(maxDateMoment, 'day');
   }
 
   getMonthStartDayName() {
@@ -89,20 +121,41 @@ export class DateCalender {
   }
 
   handleYearChange = (event) => {
-    let time = this.currentTime
-    time.iYear(parseInt(event.target.value, 10))
+    // Clone to avoid mutating state directly
+    let time = this.currentTime.clone();
+    time.iYear(parseInt(event.target.value, 10));
     const selectedDate = time.format(this.dateFormat);
-    this.selectedDate = selectedDate;
+    if (this.setParentSelectedDate) {
+      this.setParentSelectedDate(selectedDate, true, false);
+    }
   }
 
   handleMonthChange = (event) => {
-    let time = this.currentTime
-    time.iMonth(parseInt(event.target.value, 10))
+    let time = this.currentTime.clone();
+    time.iMonth(parseInt(event.target.value, 10));
     const selectedDate = time.format(this.dateFormat);
-    this.selectedDate = selectedDate;
+    if (this.setParentSelectedDate) {
+      this.setParentSelectedDate(selectedDate, true, false);
+    }
+  }
+
+  selectToday = () => {
+    // 1. Set current time to today
+    // Fix: User reported Hijri date is 1 day behind. Adding 1 day to match observation.
+    this.currentTime = moment().add(1, 'day');
+    
+    // 2. Format it according to the requested format
+    const todayStr = this.currentTime.format(this.dateFormat);
+    
+    // 3. Update parent
+    if (this.setParentSelectedDate) {
+      this.setParentSelectedDate(todayStr, true, true);
+    }
   }
 
   render() {
+    const todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
+
     return <div class='date-calender'>
     <div class='date-calender-controls'>
       <button class='control-button previous-button' onClick={this.subtractMonth} type="button">{'<'}</button>
@@ -116,6 +169,10 @@ export class DateCalender {
     </div>
     <day-names langCode={this.langCode}></day-names>
     <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.getEffectiveMaxDate()}></month-days>
+    
+    <div class='date-calender-footer'>
+      <button class='today-button' onClick={this.selectToday} type="button">{todayLabel}</button>
+    </div>
   </div>;
   }
 }

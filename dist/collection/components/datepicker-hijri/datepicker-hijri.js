@@ -1,4 +1,4 @@
-import { h } from "@stencil/core";
+import { Component, Listen, h, State, Prop } from '@stencil/core';
 import Popper from 'popper.js';
 import uuid from 'uuid';
 import moment from 'moment-hijri';
@@ -8,69 +8,136 @@ export class DatepickerHijri {
         this.selectedDate = '';
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
-        this.onDateSelectClose = false;
+        this.onDateSelectClose = true;
         this.disableFuture = false;
         this.displayCalender = false;
-        this.setSelectedDate = (selectedDate, triggerEvent = true) => {
+        this.setSelectedDate = (selectedDate, triggerEvent = true, closePicker = true) => {
             this.selectedDate = selectedDate;
             var reference = document.querySelector('#' + this.reference);
-            reference.setAttribute('value', this.selectedDate);
-            reference.value = this.selectedDate;
-            if (triggerEvent)
-                reference.dispatchEvent(new Event('change'));
-            if (this.onDateSelectClose)
+            if (reference) {
+                reference.setAttribute('value', this.selectedDate);
+                reference.value = this.selectedDate;
+                if (triggerEvent)
+                    reference.dispatchEvent(new Event('change'));
+            }
+            if (this.shouldCloseOnDateSelect() && closePicker)
                 this.displayCalender = false;
         };
     }
+    shouldCloseOnDateSelect() {
+        return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
+    }
+    // List of supported formats for robust parsing
+    getSupportedFormats() {
+        return [
+            this.dateFormat,
+            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
+            'iYYYY-iM-iD', 'iYYYY/iM/iD',
+            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
+            'iD-iM-iYYYY', 'iD/iM/iYYYY',
+            'iYYYY-iD-iM', 'iYYYY/iD/iM'
+        ];
+    }
     handleOnfocus() {
         const reference = document.querySelector('#' + this.reference);
-        if (reference && moment(reference.value, this.dateFormat)._isValid) {
-            this.selectedDate = reference.value;
+        if (reference) {
+            const m = moment(reference.value, this.getSupportedFormats(), true);
+            if (m && m.isValid && m.isValid()) {
+                this.selectedDate = reference.value;
+            }
         }
         this.displayCalender = true;
     }
-    handleOnClickOutSide(e) {
-        if (!this.hasSomeParentId(e.target, this.calenderContainerId) && !(e.target.id == this.reference))
-            this.displayCalender = false;
+    isClickOnReference(e) {
+        if (!this.reference)
+            return false;
+        const refEl = document.querySelector('#' + this.reference);
+        if (!refEl)
+            return false;
+        if (e && typeof e.composedPath === 'function') {
+            const path = e.composedPath();
+            if (path && path.includes(refEl)) {
+                return true;
+            }
+        }
+        const target = e.target;
+        if (!target)
+            return false;
+        return target.id === this.reference || refEl.contains(target);
     }
-    // Check if the element
+    isClickInsideCalender(e) {
+        const calenderEl = document.getElementById(this.calenderContainerId);
+        if (!calenderEl)
+            return false;
+        if (e && typeof e.composedPath === 'function') {
+            const path = e.composedPath();
+            if (path && path.includes(calenderEl)) {
+                return true;
+            }
+        }
+        const target = e.target;
+        if (!target)
+            return false;
+        return this.hasSomeParentId(target, this.calenderContainerId);
+    }
+    handleOnClickOutSide(e) {
+        if (!this.displayCalender)
+            return;
+        if (!this.isClickInsideCalender(e) && !this.isClickOnReference(e)) {
+            this.displayCalender = false;
+        }
+    }
+    // Check if the element has an ancestor with idName
     hasSomeParentId(element, idName) {
-        //
-        // If we are here we didn't find the searched class in any parents node
-        //
+        if (!element)
+            return false;
+        if (element.id === idName)
+            return true;
         if (!element.parentNode)
             return false;
-        //
-        // If the current node has the class return true, otherwise we will search
-        // it in the parent node
-        //
-        if (element.id == idName)
-            return true;
         return this.hasSomeParentId(element.parentNode, idName);
     }
     componentWillLoad() {
         this.calenderContainerId = uuid('datepicker-hijri');
-        // This will fix the datepicker when the selected date is null or empty
-        if (!moment(this.selectedDate, this.dateFormat)._isValid) {
+        // This will fix the datepicker when the selected date is null or empty (only if reference exists yet)
+        const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
+        const formats = this.getSupportedFormats();
+        if (refEl && !moment(this.selectedDate, formats, true).isValid()) {
             var selectedDate;
-            if (!moment(document.querySelector('#' + this.reference).getAttribute('value'), this.dateFormat)._isValid) {
-                selectedDate = moment().format(this.dateFormat);
+            const currentVal = refEl.getAttribute('value');
+            if (currentVal && moment(currentVal, formats, true).isValid()) {
+                selectedDate = currentVal;
+                this.selectedDate = selectedDate;
+                this.setSelectedDate(this.selectedDate, false, false);
             }
-            else {
-                selectedDate = document.querySelector('#' + this.reference).getAttribute('value');
-            }
-            this.selectedDate = selectedDate;
-            this.setSelectedDate(this.selectedDate, false);
+        }
+    }
+    attachToReference() {
+        if (!this.reference)
+            return;
+        const reference = document.querySelector('#' + this.reference);
+        if (!reference)
+            return;
+        reference.addEventListener('focus', () => this.handleOnfocus());
+        reference.addEventListener('click', () => this.handleOnfocus());
+        const popperEl = document.getElementById(this.calenderContainerId);
+        if (popperEl) {
+            new Popper(reference, popperEl, { placement: this.placement });
         }
     }
     componentDidLoad() {
-        var reference = document.querySelector('#' + this.reference);
-        reference.addEventListener('focus', () => this.handleOnfocus());
-        reference.addEventListener('click', () => this.handleOnfocus());
-        var popperEl = document.getElementById(this.calenderContainerId);
-        new Popper(reference, popperEl, {
-            placement: this.placement
-        });
+        // React/MUI may render the input after this component; retry until reference exists
+        const tryAttach = (attempt) => {
+            const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
+            if (refEl) {
+                this.attachToReference();
+                return;
+            }
+            if (attempt < 8) {
+                setTimeout(() => tryAttach(attempt + 1), 50 * (attempt + 1));
+            }
+        };
+        tryAttach(0);
     }
     render() {
         return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } },
@@ -173,11 +240,11 @@ export class DatepickerHijri {
             "defaultValue": "'iYYYY/iMM/iDD'"
         },
         "onDateSelectClose": {
-            "type": "boolean",
+            "type": "any",
             "mutable": false,
             "complexType": {
-                "original": "boolean",
-                "resolved": "boolean",
+                "original": "any",
+                "resolved": "any",
                 "references": {}
             },
             "required": false,
@@ -188,7 +255,7 @@ export class DatepickerHijri {
             },
             "attribute": "on-date-select-close",
             "reflect": false,
-            "defaultValue": "false"
+            "defaultValue": "true"
         },
         "maxDate": {
             "type": "string",

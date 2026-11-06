@@ -1,4 +1,4 @@
-import { h } from "@stencil/core";
+import { Component, Prop, h, State } from '@stencil/core';
 export class DayNames {
     constructor() {
         this.arabicDayNames = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];

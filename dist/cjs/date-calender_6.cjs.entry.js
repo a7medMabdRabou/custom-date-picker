@@ -2,12 +2,22 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const core = require('./core-83e968a9.js');
+const index = require('./index-117d7a5d.js');
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
+function createCommonjsModule(fn, basedir, module) {
+	return module = {
+	  path: basedir,
+	  exports: {},
+	  require: function (path, base) {
+    return commonjsRequire();
+  }
+	}, fn(module, module.exports), module.exports;
+}
+
+function commonjsRequire () {
+	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
 }
 
 var hookCallback;
@@ -5553,9 +5563,11 @@ var momentHijri = createCommonjsModule(function (module, exports) {
 });
 });
 
+const dateCalenderCss = ".date-calender{width:266px;direction:rtl;background:#ffffff;padding:15px;border:1px solid #ddd;margin-top:2px;font-family:serif;box-sizing:unset;-webkit-box-sizing:unset;font-size:14px;border-radius:4px;z-index:1000;color:black !important}.date-calender-controls{direction:rtl;text-align:center}.control-button{position:absolute;border:0px;font-weight:bold;font-size:15px;cursor:pointer;background-color:#fff}.control-button:hover{color:#888888}.control-button:focus{outline:unset}.previous-button{right:15px}.next-button{left:15px}.date-calender-footer{margin-top:10px;text-align:center;border-top:1px solid #eee;padding-top:5px}.today-button{background:#f0f0f0;border:1px solid #ddd;padding:5px 15px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;width:100%;-webkit-transition:background 0.2s;transition:background 0.2s}.today-button:hover{background:#e0e0e0}";
+
 const DateCalender = class {
     constructor(hostRef) {
-        core.registerInstance(this, hostRef);
+        index.registerInstance(this, hostRef);
         this.arabicDayNames = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
         this.arabicFullDayNames = ['احد', 'اثنين', 'ثلاثاء', 'اربعاء', 'خميس', 'جمعة', 'سبت'];
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -5566,37 +5578,72 @@ const DateCalender = class {
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
         this.disableFuture = false;
-        this.currentTime = momentHijri(this.selectedDate, this.dateFormat);
         this.subtractMonth = () => {
-            let currentTime = momentHijri(this.currentTime.format(this.dateFormat), this.dateFormat);
-            this.currentTime = currentTime.subtract(1, 'iMonth');
+            this.currentTime = this.currentTime.clone().subtract(1, 'iMonth');
         };
         this.addMonth = () => {
-            let currentTime = momentHijri(this.currentTime.format(this.dateFormat), this.dateFormat);
-            this.currentTime = currentTime.add(1, 'iMonth');
+            this.currentTime = this.currentTime.clone().add(1, 'iMonth');
         };
         this.setSelectedDate = (event) => {
-            let time = this.currentTime;
+            let time = this.currentTime.clone();
             time.iDate(parseInt(event.target.value, 10));
             const selectedDate = time.format(this.dateFormat);
-            this.selectedDate = selectedDate;
-            this.setParentSelectedDate(this.selectedDate);
+            // We shouldn't mutate the prop directly if not intended, but keeping consistent with existing logic pattern
+            // However, setParentSelectedDate is the key.
+            if (this.setParentSelectedDate) {
+                this.setParentSelectedDate(selectedDate, true, true);
+            }
         };
         this.handleYearChange = (event) => {
-            let time = this.currentTime;
+            // Clone to avoid mutating state directly
+            let time = this.currentTime.clone();
             time.iYear(parseInt(event.target.value, 10));
             const selectedDate = time.format(this.dateFormat);
-            this.selectedDate = selectedDate;
+            if (this.setParentSelectedDate) {
+                this.setParentSelectedDate(selectedDate, true, false);
+            }
         };
         this.handleMonthChange = (event) => {
-            let time = this.currentTime;
+            let time = this.currentTime.clone();
             time.iMonth(parseInt(event.target.value, 10));
             const selectedDate = time.format(this.dateFormat);
-            this.selectedDate = selectedDate;
+            if (this.setParentSelectedDate) {
+                this.setParentSelectedDate(selectedDate, true, false);
+            }
+        };
+        this.selectToday = () => {
+            // 1. Set current time to today
+            // Fix: User reported Hijri date is 1 day behind. Adding 1 day to match observation.
+            this.currentTime = momentHijri().add(1, 'day');
+            // 2. Format it according to the requested format
+            const todayStr = this.currentTime.format(this.dateFormat);
+            // 3. Update parent
+            if (this.setParentSelectedDate) {
+                this.setParentSelectedDate(todayStr, true, true);
+            }
         };
     }
+    componentWillLoad() {
+        this.currentTime = this.getMoment(this.selectedDate);
+    }
+    getFormats() {
+        return [
+            this.dateFormat,
+            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
+            'iYYYY-iM-iD', 'iYYYY/iM/iD',
+            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
+            'iD-iM-iYYYY', 'iD/iM/iYYYY',
+            'iYYYY-iD-iM', 'iYYYY/iD/iM'
+        ];
+    }
+    getMoment(dateStr) {
+        if (!dateStr)
+            return momentHijri();
+        const m = momentHijri(dateStr, this.getFormats(), true);
+        return m.isValid() ? m : momentHijri();
+    }
     watchHandler(newValue) {
-        this.currentTime = momentHijri(newValue, this.dateFormat);
+        this.currentTime = this.getMoment(newValue);
     }
     getEffectiveMaxDate() {
         let effectiveMaxDate = this.maxDate;
@@ -5604,12 +5651,16 @@ const DateCalender = class {
         const df = this.disableFuture;
         const isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
         if (isFutureDisabled) {
-            const today = momentHijri().format(this.dateFormat);
+            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" (21st) is enabled
+            const todayObj = momentHijri().add(1, 'day');
+            const today = todayObj.format(this.dateFormat);
             if (!effectiveMaxDate) {
                 return today;
             }
-            const todayMoment = momentHijri(today, this.dateFormat);
-            const maxMoment = momentHijri(effectiveMaxDate, this.dateFormat);
+            const todayMoment = todayObj;
+            const maxMoment = momentHijri(effectiveMaxDate, this.getFormats(), true);
+            if (!maxMoment.isValid())
+                return today;
             if (todayMoment.isBefore(maxMoment, 'day')) {
                 return today;
             }
@@ -5620,8 +5671,12 @@ const DateCalender = class {
         const effectiveMaxDate = this.getEffectiveMaxDate();
         if (!effectiveMaxDate)
             return false;
-        let nextMonth = momentHijri(this.currentTime.format(this.dateFormat), this.dateFormat).add(1, 'iMonth').startOf('iMonth');
-        return nextMonth.isAfter(momentHijri(effectiveMaxDate, this.dateFormat), 'day');
+        // Check if the max date is valid
+        const maxDateMoment = momentHijri(effectiveMaxDate, this.getFormats(), true);
+        if (!maxDateMoment.isValid())
+            return false;
+        let nextMonth = this.currentTime.clone().add(1, 'iMonth').startOf('iMonth');
+        return nextMonth.isAfter(maxDateMoment, 'day');
     }
     getMonthStartDayName() {
         let time = this.currentTime;
@@ -5632,13 +5687,14 @@ const DateCalender = class {
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
     }
     render() {
-        return core.h("div", { class: 'date-calender' }, core.h("div", { class: 'date-calender-controls' }, core.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), core.h("strong", { class: 'month-name' }, this.getMonthName()), core.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), core.h("div", null, core.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), core.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), core.h("day-names", { langCode: this.langCode }), core.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }));
+        const todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
+        return index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }), index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: 'today-button', onClick: this.selectToday, type: "button" }, todayLabel)));
     }
     static get watchers() { return {
         "selectedDate": ["watchHandler"]
     }; }
-    static get style() { return ".date-calender{width:266px;direction:rtl;background:#fff;padding:15px;border:1px solid #ddd;margin-top:2px;font-family:serif;box-sizing:unset;-webkit-box-sizing:unset;font-size:14px;border-radius:4px;z-index:1000;color:#000!important}.date-calender-controls{direction:rtl;text-align:center}.control-button{position:absolute;border:0;font-weight:700;font-size:15px;cursor:pointer;background-color:#fff}.control-button:hover{color:#888}.control-button:focus{outline:unset}.previous-button{right:15px}.next-button{left:15px}"; }
 };
+DateCalender.style = dateCalenderCss;
 
 /**!
  * @fileOverview Kickass library to create and place poppers near their reference elements.
@@ -8458,83 +8514,152 @@ var uuid_1 = uuid;
 
 const DatepickerHijri = class {
     constructor(hostRef) {
-        core.registerInstance(this, hostRef);
+        index.registerInstance(this, hostRef);
         this.placement = 'bottom';
         this.selectedDate = '';
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
-        this.onDateSelectClose = false;
+        this.onDateSelectClose = true;
         this.disableFuture = false;
         this.displayCalender = false;
-        this.setSelectedDate = (selectedDate, triggerEvent = true) => {
+        this.setSelectedDate = (selectedDate, triggerEvent = true, closePicker = true) => {
             this.selectedDate = selectedDate;
             var reference = document.querySelector('#' + this.reference);
-            reference.setAttribute('value', this.selectedDate);
-            reference.value = this.selectedDate;
-            if (triggerEvent)
-                reference.dispatchEvent(new Event('change'));
-            if (this.onDateSelectClose)
+            if (reference) {
+                reference.setAttribute('value', this.selectedDate);
+                reference.value = this.selectedDate;
+                if (triggerEvent)
+                    reference.dispatchEvent(new Event('change'));
+            }
+            if (this.shouldCloseOnDateSelect() && closePicker)
                 this.displayCalender = false;
         };
     }
+    shouldCloseOnDateSelect() {
+        return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
+    }
+    // List of supported formats for robust parsing
+    getSupportedFormats() {
+        return [
+            this.dateFormat,
+            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
+            'iYYYY-iM-iD', 'iYYYY/iM/iD',
+            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
+            'iD-iM-iYYYY', 'iD/iM/iYYYY',
+            'iYYYY-iD-iM', 'iYYYY/iD/iM'
+        ];
+    }
     handleOnfocus() {
         const reference = document.querySelector('#' + this.reference);
-        if (reference && momentHijri(reference.value, this.dateFormat)._isValid) {
-            this.selectedDate = reference.value;
+        if (reference) {
+            const m = momentHijri(reference.value, this.getSupportedFormats(), true);
+            if (m && m.isValid && m.isValid()) {
+                this.selectedDate = reference.value;
+            }
         }
         this.displayCalender = true;
     }
-    handleOnClickOutSide(e) {
-        if (!this.hasSomeParentId(e.target, this.calenderContainerId) && !(e.target.id == this.reference))
-            this.displayCalender = false;
+    isClickOnReference(e) {
+        if (!this.reference)
+            return false;
+        const refEl = document.querySelector('#' + this.reference);
+        if (!refEl)
+            return false;
+        if (e && typeof e.composedPath === 'function') {
+            const path = e.composedPath();
+            if (path && path.includes(refEl)) {
+                return true;
+            }
+        }
+        const target = e.target;
+        if (!target)
+            return false;
+        return target.id === this.reference || refEl.contains(target);
     }
-    // Check if the element
+    isClickInsideCalender(e) {
+        const calenderEl = document.getElementById(this.calenderContainerId);
+        if (!calenderEl)
+            return false;
+        if (e && typeof e.composedPath === 'function') {
+            const path = e.composedPath();
+            if (path && path.includes(calenderEl)) {
+                return true;
+            }
+        }
+        const target = e.target;
+        if (!target)
+            return false;
+        return this.hasSomeParentId(target, this.calenderContainerId);
+    }
+    handleOnClickOutSide(e) {
+        if (!this.displayCalender)
+            return;
+        if (!this.isClickInsideCalender(e) && !this.isClickOnReference(e)) {
+            this.displayCalender = false;
+        }
+    }
+    // Check if the element has an ancestor with idName
     hasSomeParentId(element, idName) {
-        //
-        // If we are here we didn't find the searched class in any parents node
-        //
+        if (!element)
+            return false;
+        if (element.id === idName)
+            return true;
         if (!element.parentNode)
             return false;
-        //
-        // If the current node has the class return true, otherwise we will search
-        // it in the parent node
-        //
-        if (element.id == idName)
-            return true;
         return this.hasSomeParentId(element.parentNode, idName);
     }
     componentWillLoad() {
         this.calenderContainerId = uuid_1('datepicker-hijri');
-        // This will fix the datepicker when the selected date is null or empty
-        if (!momentHijri(this.selectedDate, this.dateFormat)._isValid) {
+        // This will fix the datepicker when the selected date is null or empty (only if reference exists yet)
+        const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
+        const formats = this.getSupportedFormats();
+        if (refEl && !momentHijri(this.selectedDate, formats, true).isValid()) {
             var selectedDate;
-            if (!momentHijri(document.querySelector('#' + this.reference).getAttribute('value'), this.dateFormat)._isValid) {
-                selectedDate = momentHijri().format(this.dateFormat);
+            const currentVal = refEl.getAttribute('value');
+            if (currentVal && momentHijri(currentVal, formats, true).isValid()) {
+                selectedDate = currentVal;
+                this.selectedDate = selectedDate;
+                this.setSelectedDate(this.selectedDate, false, false);
             }
-            else {
-                selectedDate = document.querySelector('#' + this.reference).getAttribute('value');
-            }
-            this.selectedDate = selectedDate;
-            this.setSelectedDate(this.selectedDate, false);
+        }
+    }
+    attachToReference() {
+        if (!this.reference)
+            return;
+        const reference = document.querySelector('#' + this.reference);
+        if (!reference)
+            return;
+        reference.addEventListener('focus', () => this.handleOnfocus());
+        reference.addEventListener('click', () => this.handleOnfocus());
+        const popperEl = document.getElementById(this.calenderContainerId);
+        if (popperEl) {
+            new Popper(reference, popperEl, { placement: this.placement });
         }
     }
     componentDidLoad() {
-        var reference = document.querySelector('#' + this.reference);
-        reference.addEventListener('focus', () => this.handleOnfocus());
-        reference.addEventListener('click', () => this.handleOnfocus());
-        var popperEl = document.getElementById(this.calenderContainerId);
-        new Popper(reference, popperEl, {
-            placement: this.placement
-        });
+        // React/MUI may render the input after this component; retry until reference exists
+        const tryAttach = (attempt) => {
+            const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
+            if (refEl) {
+                this.attachToReference();
+                return;
+            }
+            if (attempt < 8) {
+                setTimeout(() => tryAttach(attempt + 1), 50 * (attempt + 1));
+            }
+        };
+        tryAttach(0);
     }
     render() {
-        return core.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, core.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
+        return index.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
     }
 };
 
+const dayNamesCss = ".day-names-container{text-align:right;border-bottom:1px solid #ddd}.day-name{display:inline-block;margin:2px;width:30px;height:25px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset !important;box-sizing:unset}";
+
 const DayNames = class {
     constructor(hostRef) {
-        core.registerInstance(this, hostRef);
+        index.registerInstance(this, hostRef);
         this.arabicDayNames = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
         this.arabicFullDayNames = ['احد', 'اثنين', 'ثلاثاء', 'اربعاء', 'خميس', 'جمعة', 'سبت'];
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -8550,18 +8675,30 @@ const DayNames = class {
             this.selectedDayNames = this.englishDayNames;
     }
     render() {
-        return core.h("div", { class: 'day-names-container' }, this.selectedDayNames.map((item, key) => core.h("div", { class: "day-name", key: key.toString() }, item)));
+        return index.h("div", { class: 'day-names-container' }, this.selectedDayNames.map((item, key) => index.h("div", { class: "day-name", key: key.toString() }, item)));
     }
-    static get style() { return ".day-names-container{text-align:right;border-bottom:1px solid #ddd}.day-name{display:inline-block;margin:2px;width:30px;height:25px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset!important;box-sizing:unset}"; }
 };
+DayNames.style = dayNamesCss;
+
+const monthDaysCss = ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset !important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid black}.no-hover:hover{border:1px solid white !important}.month-day-button{cursor:pointer;border:0px;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:black !important;color:white !important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed !important;background-color:#f5f5f5 !important;color:#ccc !important;opacity:0.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}";
 
 const MonthDays = class {
     constructor(hostRef) {
-        core.registerInstance(this, hostRef);
+        index.registerInstance(this, hostRef);
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     }
+    getFormats() {
+        return [
+            this.dateFormat,
+            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
+            'iYYYY-iM-iD', 'iYYYY/iM/iD',
+            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
+            'iD-iM-iYYYY', 'iD/iM/iYYYY',
+            'iYYYY-iD-iM', 'iYYYY/iD/iM'
+        ];
+    }
     getMonthStartDayName() {
-        let time = this.currentTime;
+        let time = this.currentTime.clone();
         time.startOf('iMonth');
         return time.format('dd');
     }
@@ -8569,19 +8706,22 @@ const MonthDays = class {
         return this.currentTime.iDaysInMonth();
     }
     isSelectedDate(i) {
-        let time = this.currentTime;
+        if (!this.selectedDate)
+            return false;
+        let time = this.currentTime.clone();
         time.iDate(parseInt(i, 10));
-        return this.selectedDate === time.format(this.dateFormat);
+        const selected = momentHijri(this.selectedDate, this.getFormats(), true);
+        if (!selected.isValid())
+            return false;
+        return time.isSame(selected, 'day');
     }
     isAfterMaxDate(i) {
         if (!this.maxDate)
             return false;
-        // Use the current calendar year/month and set the day to i
-        let currentDayStr = this.currentTime.format('iYYYY/iMM/iDD');
-        let dayMoment = momentHijri(currentDayStr, 'iYYYY/iMM/iDD');
+        let dayMoment = this.currentTime.clone();
         dayMoment.iDate(parseInt(i, 10));
         // Parse the max date string
-        let maxMoment = momentHijri(this.maxDate, this.dateFormat);
+        let maxMoment = momentHijri(this.maxDate, this.getFormats(), true);
         if (!maxMoment.isValid())
             return false;
         return dayMoment.isAfter(maxMoment, 'day');
@@ -8589,20 +8729,22 @@ const MonthDays = class {
     render() {
         let daysList = [];
         for (let i = this.englishDayNames.indexOf(this.getMonthStartDayName()); i > 0; i--) {
-            daysList.push(core.h("div", { class: 'month-day no-hover', key: daysList.length.toString() }));
+            daysList.push(index.h("div", { class: 'month-day no-hover', key: daysList.length.toString() }));
         }
         for (let i = 1; i < this.monthDays() + 1; i++) {
             const isFuture = this.isAfterMaxDate(i);
-            daysList.push(core.h("div", { class: 'month-day ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, core.h("button", { class: 'month-day-button ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture }, i)));
+            daysList.push(index.h("div", { class: 'month-day ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, index.h("button", { class: 'month-day-button ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture }, i)));
         }
-        return core.h("div", { class: 'month-days' }, daysList);
+        return index.h("div", { class: 'month-days' }, daysList);
     }
-    static get style() { return ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset!important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid #000}.no-hover:hover{border:1px solid #fff!important}.month-day-button{cursor:pointer;border:0;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:#000!important;color:#fff!important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed!important;background-color:#f5f5f5!important;color:#ccc!important;opacity:.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}"; }
 };
+MonthDays.style = monthDaysCss;
+
+const monthsListCss = ".months-list{width:100px;background:transparent;height:25px;border-radius:4px;font-family:sans-serif;font-size:12px;border:1px solid #ddd;margin-left:4px;margin-top:5px}";
 
 const MonthsList = class {
     constructor(hostRef) {
-        core.registerInstance(this, hostRef);
+        index.registerInstance(this, hostRef);
         this.months = [
             { number: 0, name: 'محرم' },
             { number: 1, name: 'صفر' },
@@ -8628,16 +8770,18 @@ const MonthsList = class {
                     continue;
                 }
             }
-            monthsList.push(core.h("option", { key: this.months[i].number, value: this.months[i].number, selected: this.currentTime.iMonth() == this.months[i].number }, this.months[i].name));
+            monthsList.push(index.h("option", { key: this.months[i].number, value: this.months[i].number, selected: this.currentTime.iMonth() == this.months[i].number }, this.months[i].name));
         }
-        return core.h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
+        return index.h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
     }
-    static get style() { return ".months-list{width:100px;background:transparent;height:25px;border-radius:4px;font-family:sans-serif;font-size:12px;border:1px solid #ddd;margin-left:4px;margin-top:5px}"; }
 };
+MonthsList.style = monthsListCss;
+
+const yearsListCss = ".years-list{width:100px;background:transparent;height:25px;border-radius:4px;font-family:sans-serif;font-size:12px;border:1px solid #ddd;margin-left:4px;margin-top:5px}";
 
 const YearsList = class {
     constructor(hostRef) {
-        core.registerInstance(this, hostRef);
+        index.registerInstance(this, hostRef);
         this.minYear = 1356;
         this.maxYear = 1500;
         this.dateFormat = 'iYYYY/iMM/iDD';
@@ -8649,12 +8793,12 @@ const YearsList = class {
             maxYear = momentHijri(this.maxDate, this.dateFormat).iYear();
         }
         for (let i = this.minYear; i <= maxYear; i++) {
-            yearsList.push(core.h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
+            yearsList.push(index.h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
         }
-        return core.h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
+        return index.h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
     }
-    static get style() { return ".years-list{width:100px;background:transparent;height:25px;border-radius:4px;font-family:sans-serif;font-size:12px;border:1px solid #ddd;margin-left:4px;margin-top:5px}"; }
 };
+YearsList.style = yearsListCss;
 
 exports.date_calender = DateCalender;
 exports.datepicker_hijri = DatepickerHijri;

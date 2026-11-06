@@ -16,8 +16,19 @@ export class MonthDays {
   @Prop() selectedDate;
   @Prop() maxDate: string;
 
+  getFormats() {
+    return [
+      this.dateFormat,
+      'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
+      'iYYYY-iM-iD', 'iYYYY/iM/iD',
+      'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
+      'iD-iM-iYYYY', 'iD/iM/iYYYY',
+      'iYYYY-iD-iM', 'iYYYY/iD/iM'
+   ];
+  }
+
   getMonthStartDayName() {
-    let time = this.currentTime
+    let time = this.currentTime.clone();
     time.startOf('iMonth')
     return time.format('dd')
   }
@@ -26,21 +37,24 @@ export class MonthDays {
   }
 
   isSelectedDate(i) {
-    let time = this.currentTime
+    if (!this.selectedDate) return false;
+    let time = this.currentTime.clone();
     time.iDate(parseInt(i, 10))
-    return this.selectedDate === time.format(this.dateFormat)
+    
+    const selected = moment(this.selectedDate, this.getFormats(), true);
+    if (!selected.isValid()) return false;
+    
+    return time.isSame(selected, 'day');
   }
 
   isAfterMaxDate(i) {
     if (!this.maxDate) return false;
     
-    // Use the current calendar year/month and set the day to i
-    let currentDayStr = this.currentTime.format('iYYYY/iMM/iDD');
-    let dayMoment = moment(currentDayStr, 'iYYYY/iMM/iDD');
+    let dayMoment = this.currentTime.clone();
     dayMoment.iDate(parseInt(i, 10));
     
     // Parse the max date string
-    let maxMoment = moment(this.maxDate, this.dateFormat);
+    let maxMoment = moment(this.maxDate, this.getFormats(), true);
     if (!maxMoment.isValid()) return false;
     
     return dayMoment.isAfter(maxMoment, 'day');

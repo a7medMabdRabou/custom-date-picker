@@ -1,4 +1,4 @@
-import { h } from "@stencil/core";
+import { Component, Prop, h } from '@stencil/core';
 import moment from 'moment-hijri';
 export class MonthsList {
     constructor() {

@@ -1,15 +1,17 @@
 {
-  "name": "tabebek-custom-date",
-  "version": "0.0.1",
-  "description": "Stencil Component Starter",
+  "name": "islamic-ksa-calender",
+  "version": "1.0.0",
+  "description": "Lightweight Hijri (Islamic / Umm al-Qura / KSA) Datepicker Web Component. Auto-closes on selection or outside click. Works seamlessly in plain HTML, React, Angular, Vue, and Next.js.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "es2015": "dist/esm/index.mjs",
   "es2017": "dist/esm/index.mjs",
+  "jsnext:main": "dist/esm/index.mjs",
   "types": "dist/types/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
-  "unpkg": "dist/tabebekcustomdate/tabebekcustomdate.js",
+  "unpkg": "dist/islamic-ksa-calender/islamic-ksa-calender.esm.js",
+  "jsdelivr": "dist/islamic-ksa-calender/islamic-ksa-calender.esm.js",
   "files": [
     "dist/",
     "loader/"
@@ -19,16 +21,41 @@
     "start": "stencil build --dev --watch --serve",
     "test": "stencil test --spec --e2e",
     "test.watch": "stencil test --spec --e2e --watchAll",
-    "generate": "stencil generate"
+    "generate": "stencil generate",
+    "prepublishOnly": "npm run build"
   },
-  "devDependencies": {
-    "@stencil/core": "^1.3.3"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a7medMabdRabou/custom-date-picker.git"
   },
+  "keywords": [
+    "hijri",
+    "hijri-calendar",
+    "hijri-datepicker",
+    "islamic-calendar",
+    "islamic-ksa-calender",
+    "ksa",
+    "saudi-arabia",
+    "umm-al-qura",
+    "arabic-calendar",
+    "stencil",
+    "web-components",
+    "datepicker",
+    "react",
+    "angular",
+    "vue",
+    "محدد-التاريخ-الهجري",
+    "تقويم-هجري"
+  ],
+  "author": "Ahmed Abd Rabou",
   "license": "MIT",
   "dependencies": {
     "@popperjs/core": "^2.0.6",
     "moment-hijri": "^2.1.2",
     "popper.js": "^1.16.0",
     "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "@stencil/core": "^1.17.4"
   }
 }

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
   <title>تجربة محدد التاريخ الهجري</title>
-  <link href="https://fonts.googleapis.com/css?family=Tajawal&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" rel="stylesheet">
+  <link href="../src/assets/css/tajawal.css" rel="stylesheet">
+  <link href="../src/assets/css/skeleton.min.css" rel="stylesheet">
 </head>
 <style>
     body {
@@ -23,12 +23,12 @@
     <h2>تجربة محدد التاريخ الهجري</h2>
     <input type="text" id="calender" value="1441/02/01" onchange="console.log('changed')">
     <button id="calender2" onloadeddata="console.log(this)">حدد التاريخ :</button>
-    <datepicker-hijri reference="calender" max-date="1446/09/20"  placement="bottom" selected-date="1441/02/01"></datepicker-hijri>
+    <datepicker-hijri reference="calender" disable-future placement="bottom" selected-date="1441/02/01"></datepicker-hijri>
     <datepicker-hijri reference="calender2" placement="bottom" selected-date="1441/02/01"></datepicker-hijri>
 
-    <!-- Scripts -->
-    <!-- <script src="../build/datepicker-hijri.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/gh/abublihi/datepicker-hijri@v1.1/build/datepicker-hijri.js"></script>
+    <!-- Scripts: use local build or CDN -->
+    <script type="module" src="../dist/islamic-ksa-calender/islamic-ksa-calender.esm.js"></script>
+    <script nomodule src="../dist/islamic-ksa-calender/islamic-ksa-calender.js"></script>
 
   </div>
 </body>

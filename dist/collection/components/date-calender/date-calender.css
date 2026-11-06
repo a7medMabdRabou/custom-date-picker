@@ -43,3 +43,26 @@
 .next-button {
   left: 15px;
 }
+
+.date-calender-footer {
+  margin-top: 10px;
+  text-align: center;
+  border-top: 1px solid #eee;
+  padding-top: 5px;
+}
+
+.today-button {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  width: 100%; 
+  transition: background 0.2s;
+}
+
+.today-button:hover {
+  background: #e0e0e0;
+}

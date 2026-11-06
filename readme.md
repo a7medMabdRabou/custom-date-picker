@@ -1,67 +1,283 @@
-![Built With Stencil](https://img.shields.io/badge/-Built%20With%20Stencil-16161d.svg?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDE5LjIuMSwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI%2BCjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI%2BCgkuc3Qwe2ZpbGw6I0ZGRkZGRjt9Cjwvc3R5bGU%2BCjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik00MjQuNywzNzMuOWMwLDM3LjYtNTUuMSw2OC42LTkyLjcsNjguNkgxODAuNGMtMzcuOSwwLTkyLjctMzAuNy05Mi43LTY4LjZ2LTMuNmgzMzYuOVYzNzMuOXoiLz4KPHBhdGggY2xhc3M9InN0MCIgZD0iTTQyNC43LDI5Mi4xSDE4MC40Yy0zNy42LDAtOTIuNy0zMS05Mi43LTY4LjZ2LTMuNkgzMzJjMzcuNiwwLDkyLjcsMzEsOTIuNyw2OC42VjI5Mi4xeiIvPgo8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDI0LjcsMTQxLjdIODcuN3YtMy42YzAtMzcuNiw1NC44LTY4LjYsOTIuNy02OC42SDMzMmMzNy45LDAsOTIuNywzMC43LDkyLjcsNjguNlYxNDEuN3oiLz4KPC9zdmc%2BCg%3D%3D&colorA=16161d&style=flat-square)
+# islamic-ksa-calender (محدد التقويم الهجري)
 
-# Hijridate picker web component, simple and can be integrated easily with any frameworks. (محدد التاريخ الهجري)
+[![npm version](https://img.shields.io/npm/v/islamic-ksa-calender.svg?style=flat-square)](https://www.npmjs.com/package/islamic-ksa-calender)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Built With Stencil](https://img.shields.io/badge/-Built%20With%20Stencil-16161d.svg?style=flat-square)](https://stenciljs.com)
 
-# Installation
+مكتبة ويب خفيفة وسريعة لتحديد التاريخ الهجري (تقويم أم القرى / المملكة العربية السعودية) تعمل بسلاسة كمكون ويب (Web Component) مع جميع أطر العمل: **HTML, React, Angular, Vue, Next.js** وأي بيئة جافاسكريبت.
 
-## Stand alone: 
+A modern, lightweight Hijri (Islamic / Umm al-Qura / Saudi Arabia) datepicker web component. Works seamlessly across **Vanilla HTML, React, Angular, Vue, Next.js**, and beyond.
 
-* Use CDN
+---
 
-```html 
-<script src="https://unpkg.com/tabebek-custom-date@latest/dist/tabebekcustomdate/tabebekcustomdate.js"></script>
+## ✨ Features / المميزات
+
+- 📅 **Umm al-Qura Hijri Calendar** — دقة عالية في حساب التقويم الهجري المعتمد في المملكة العربية السعودية.
+- ⚡ **Auto-close on Select** — يُغلق محدد التاريخ تلقائياً بمجرد اختيار اليوم أو زر "اليوم".
+- 🎯 **Auto-close on Click Outside** — إغلاق ذكي عند النقر خارج التقويم مع عدم التأثر بحقول الإدخال.
+- 🚫 **Disable Future Dates** — دعم خاصية منع اختيار التواريخ المستقبلية (`disable-future`) المناسبة لتواريخ الميلاد والتسجيل.
+- 📆 **Max Date Limit** — إمكانية تحديد حد أقصى للتاريخ (`max-date`).
+- 🌐 **Arabic & English** — دعم كامل للغتين العربية والإنجليزية وأيام الأسبوع وأسماء الأشهر الهجرية.
+- 🔄 **Two-way Sync & Events** — إرسال حدث `change` قياسي تلقائياً عند تغيير القيمة لتحديث النماذج والأطر.
+- 🔌 **Universal Compatibility** — يعمل مع React, Vue, Angular, Svelte, Next.js, أو كملف HTML مستقل.
+
+---
+
+## 📦 Installation / التثبيت
+
+### 1. Via NPM
+
+```bash
+npm install islamic-ksa-calender
 ```
-* Download files
 
-1. Download all files in the `dist/tabebekcustomdate` directory
-2. Include the script `tabebekcustomdate.js` file like in the code below
+or via Yarn:
+
+```bash
+yarn add islamic-ksa-calender
+```
+
+or via pnpm:
+
+```bash
+pnpm add islamic-ksa-calender
+```
+
+---
+
+### 2. Via CDN (بدون تثبيت - مباشرة في المتصفح)
+
+#### Option A: unpkg (NPM CDN)
 
 ```html
-<script src="dist/tabebekcustomdate/tabebekcustomdate.js"></script>
+<script type="module" src="https://unpkg.com/islamic-ksa-calender@latest/dist/islamic-ksa-calender/islamic-ksa-calender.esm.js"></script>
+<script nomodule src="https://unpkg.com/islamic-ksa-calender@latest/dist/islamic-ksa-calender/islamic-ksa-calender.js"></script>
 ```
 
-# Usage
-
-## Attributes:
-|      name       | required | description |
-|-----------------|----------|-------------|
-| reference       |    yes   | an identifier for the  element where the datepicker will appear it must be an id for an html element |
-| placement       |    no    | the placement of the the datepicker 'bottom', 'top', 'right', 'left' and 'auto' `default:` bottom, you can use any placement in [popper.js](https://popper.js.org/popper-documentation.html#Popper.placements) |
-| date-format     |    no    | the date format, it is string, `default:` iYYYY/iMM/iDD, any format in [moment-hijri](https://github.com/xsoh/moment-hijri) will work|
-| selected-date   |    no    | the selected date it is string with the same format of `date-format` prop |
-| on-date-select-close   |    no    | if you want the datepicker to disapeare on chosing the date only add `on-date-select-close` |
-| max-date   |    no    | if you want to set a maximum date, it is string with the same format of `date-format` prop |
-
-
-## Example
-
-In the Example below the `input` with id calender is the reference for the datepicker-hijri web component, so if you click or focus on the input the datepicker will be shown.
+#### Option B: jsDelivr (GitHub CDN)
 
 ```html
-<input type="text" id="calender">
-<datepicker-hijri reference="calender" placement="bottom" date-format="iYYYY/iMM/iDD" selected-date="1441/02/01"></datepicker-hijri>
+<script type="module" src="https://cdn.jsdelivr.net/gh/a7medMabdRabou/custom-date-picker@main/dist/islamic-ksa-calender/islamic-ksa-calender.esm.js"></script>
 ```
 
-## Event `onchange`
+---
 
-in any change on the date, will be firing a `change` event. so you can listen and respond to the change.
+### 3. Local / Standalone (بدون مدير حزم)
+
+انسخ مجلد `dist/islamic-ksa-calender/` إلى مشروعك، ثم أضف في صفحتك:
 
 ```html
-<input type="text" id="calender" onchange="console.log('changed')">
-                                <!-- ^^^^^^^^ -->
-<datepicker-hijri reference="calender" placement="bottom" date-format="iYYYY/iMM/iDD" selected-date="1441/02/01"></datepicker-hijri>
+<script type="module" src="./dist/islamic-ksa-calender/islamic-ksa-calender.esm.js"></script>
 ```
-## Demo 
-[Codepen Hijridate picker](https://codepen.io/abublihi/pen/RwwMJwz)
 
-![Demo Image](https://i.ibb.co/SmZwqfH/hijri-datepicker-1.gif)
+راجع ملف [STANDALONE-FILES.md](STANDALONE-FILES.md) لمزيد من التفاصيل.
 
-## how it works 
+---
 
-So the datepicker shown and every thing is good, but what is happening, when the user chooses the day, the datepicker will modify the attribute `value` on the reference with the new value.
+## 🚀 Usage Examples / أمثلة الاستخدام
 
+### 1. Plain HTML / JavaScript
 
-# Credits
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>تجربة محدد التاريخ الهجري</title>
+  <script type="module" src="https://unpkg.com/islamic-ksa-calender@latest/dist/islamic-ksa-calender/islamic-ksa-calender.esm.js"></script>
+</head>
+<body>
 
-- [@xsoh](https://github.com/xsoh/moment-hijri) Thank for the awesome package moment-hijir.
-- [@FezVrasta](https://github.com/FezVrasta/popper.js) Thank you for the package popper.js.
+  <!-- Input Field -->
+  <input type="text" id="hijri-date" placeholder="اختر التاريخ">
+
+  <!-- Datepicker Component -->
+  <datepicker-hijri reference="hijri-date" placement="bottom"></datepicker-hijri>
+
+  <script>
+    document.getElementById('hijri-date').addEventListener('change', (e) => {
+      console.log('Selected date:', e.target.value);
+    });
+  </script>
+
+</body>
+</html>
+```
+
+---
+
+### 2. React / Next.js
+
+In your `index.js`, `App.js`, or root component:
+
+```tsx
+import React, { useEffect, useState } from 'react';
+import { defineCustomElements } from 'islamic-ksa-calender/loader';
+
+// Initialize the web component once in your app
+if (typeof window !== 'undefined') {
+  defineCustomElements(window);
+}
+
+export default function DatePickerExample() {
+  const [date, setDate] = useState('');
+
+  return (
+    <div style={{ padding: '2rem', direction: 'rtl' }}>
+      <label htmlFor="birthDate">تاريخ الميلاد الهجري:</label>
+      <input
+        type="text"
+        id="birthDate"
+        value={date}
+        placeholder="1445/01/01"
+        onChange={(e) => setDate(e.target.value)}
+      />
+
+      {/* Hijri Datepicker */}
+      <datepicker-hijri
+        reference="birthDate"
+        disable-future
+        placement="bottom"
+        date-format="iYYYY/iMM/iDD"
+      ></datepicker-hijri>
+    </div>
+  );
+}
+```
+
+> **Note for Next.js (SSR):** Wrap `defineCustomElements` inside `useEffect` or check `typeof window !== 'undefined'` since web components are client-side only.
+
+---
+
+### 3. Vue 3 / Vite
+
+In your `main.js`:
+
+```javascript
+import { createApp } from 'vue';
+import App from './App.vue';
+import { defineCustomElements } from 'islamic-ksa-calender/loader';
+
+defineCustomElements();
+
+const app = createApp(App);
+app.mount('#app');
+```
+
+In your component (`.vue`):
+
+```html
+<template>
+  <div dir="rtl">
+    <input type="text" id="vueHijriDate" v-model="selectedDate" placeholder="اختر التاريخ">
+    <datepicker-hijri reference="vueHijriDate" placement="bottom" disable-future></datepicker-hijri>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+const selectedDate = ref('');
+</script>
+```
+
+---
+
+### 4. Angular
+
+In `main.ts` or `app.module.ts`:
+
+```typescript
+import { defineCustomElements } from 'islamic-ksa-calender/loader';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
+defineCustomElements();
+
+@NgModule({
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
+export class AppModule {}
+```
+
+In your template (`app.component.html`):
+
+```html
+<input type="text" id="angularHijriDate" placeholder="اختر التاريخ">
+<datepicker-hijri reference="angularHijriDate" placement="bottom"></datepicker-hijri>
+```
+
+---
+
+## ⚙️ Properties & Attributes / الخصائص
+
+| Attribute | Property | Type | Default | Description |
+|-----------|----------|------|---------|-------------|
+| `reference` | `reference` | `string` | **Required** | مُعرّف (`id`) عنصر الإدخال `input` أو الزر المرتبط. |
+| `placement` | `placement` | `string` | `'bottom'` | موضع ظهور التقويم (`'bottom'`, `'top'`, `'right'`, `'left'`, `'auto'`). |
+| `date-format` | `dateFormat` | `string` | `'iYYYY/iMM/iDD'` | صيغة التاريخ الهجري (راجع [moment-hijri](https://github.com/xsoh/moment-hijri)). |
+| `selected-date` | `selectedDate` | `string` | `''` | التاريخ المحدد مبدئياً. |
+| `disable-future` | `disableFuture` | `boolean` | `false` | تعطيل اختيار التواريخ المستقبلية (اليوم هو الحد الأقصى). |
+| `max-date` | `maxDate` | `string` | `undefined` | حد أقصى مخصص للتاريخ (أي تاريخ بعده يكون معطلاً). |
+| `on-date-select-close` | `onDateSelectClose` | `boolean` | `true` | إغلاق التقويم تلقائياً بمجرد اختيار التاريخ (مفعل افتراضياً). |
+| `lang-code` | `langCode` | `string` | `'ar'` | لغة العرض (`'ar'` للعربية أو `'en'` للإنجليزية). |
+
+---
+
+## 🛠️ Common Use Cases / سيناريوهات شائعة
+
+### منع التواريخ المستقبلية (مثل تاريخ الميلاد أو الهوية):
+```html
+<input type="text" id="dob" placeholder="تاريخ الميلاد">
+<datepicker-hijri reference="dob" disable-future placement="bottom"></datepicker-hijri>
+```
+
+### تحديد حد أقصى مخصص للتاريخ:
+```html
+<input type="text" id="reservation" placeholder="تاريخ الحجز">
+<datepicker-hijri reference="reservation" max-date="1447/12/29" placement="bottom"></datepicker-hijri>
+```
+
+### استخدام صيغة مخصصة (مثل الشرطات):
+```html
+<input type="text" id="customFormat" placeholder="1445-02-15">
+<datepicker-hijri reference="customFormat" date-format="iYYYY-iMM-iDD" placement="bottom"></datepicker-hijri>
+```
+
+### إبقاء التقويم مفتوحاً بعد الاختيار (اختياري):
+```html
+<datepicker-hijri reference="myInput" on-date-select-close="false"></datepicker-hijri>
+```
+
+---
+
+## 🚢 Publishing to NPM / النشر على NPM
+
+لإعادة نشر تحديثات الحزمة على npm:
+
+1. تأكد من تسجيل الدخول إلى حسابك في npm:
+   ```bash
+   npm login
+   ```
+2. قم ببناء المكتبة:
+   ```bash
+   npm run build
+   ```
+3. نشر المكتبة:
+   ```bash
+   npm publish --access public
+   ```
+
+---
+
+## 💻 Pushing to GitHub / الرفع إلى GitHub
+
+```bash
+git add .
+git commit -m "feat: publish islamic-ksa-calender v1.0.0 with auto-close and clean structure"
+git push origin main
+```
+
+---
+
+## 📄 License / الترخيص
+
+مرخص تحت رخصة [MIT License](LICENSE). مفتوح المصدر ومتاح للاستخدام التجاري والشخصي.

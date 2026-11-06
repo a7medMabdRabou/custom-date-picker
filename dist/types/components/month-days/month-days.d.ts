@@ -5,9 +5,10 @@ export declare class MonthDays {
     dateFormat: any;
     selectedDate: any;
     maxDate: string;
+    getFormats(): any[];
     getMonthStartDayName(): any;
     monthDays(): any;
-    isSelectedDate(i: any): boolean;
+    isSelectedDate(i: any): any;
     isAfterMaxDate(i: any): any;
     render(): any;
 }
