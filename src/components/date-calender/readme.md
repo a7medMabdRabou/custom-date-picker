@@ -9,10 +9,12 @@
 
 | Property                | Attribute                  | Description       | Type     | Default           |
 | ----------------------- | -------------------------- | ----------------- | -------- | ----------------- |
+| `bgcolor`               | `bgcolor`                  |                   | `string` | `undefined`       |
 | `dateFormat`            | `date-format`              |                   | `string` | `'iYYYY/iMM/iDD'` |
 | `disableFuture`         | `disable-future`           |                   | `any`    | `false`           |
 | `langCode`              | `lang-code`                | The language code | `string` | `'ar'`            |
 | `maxDate`               | `max-date`                 |                   | `string` | `undefined`       |
+| `selectedColor`         | `selected-color`           |                   | `string` | `undefined`       |
 | `selectedDate`          | `selected-date`            |                   | `string` | `''`              |
 | `setParentSelectedDate` | `set-parent-selected-date` |                   | `any`    | `undefined`       |
 

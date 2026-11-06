@@ -11,6 +11,8 @@ export declare class DateCalender {
     setParentSelectedDate: any;
     maxDate: string;
     disableFuture: any;
+    bgcolor: string;
+    selectedColor: string;
     currentTime: any;
     componentWillLoad(): void;
     getFormats(): string[];

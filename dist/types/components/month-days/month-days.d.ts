@@ -5,6 +5,8 @@ export declare class MonthDays {
     dateFormat: any;
     selectedDate: any;
     maxDate: string;
+    bgcolor: string;
+    selectedColor: string;
     getFormats(): any[];
     getMonthStartDayName(): any;
     monthDays(): any;

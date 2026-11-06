@@ -9,9 +9,11 @@
 
 | Property          | Attribute           | Description | Type     | Default     |
 | ----------------- | ------------------- | ----------- | -------- | ----------- |
+| `bgcolor`         | `bgcolor`           |             | `string` | `undefined` |
 | `currentTime`     | `current-time`      |             | `any`    | `undefined` |
 | `dateFormat`      | `date-format`       |             | `any`    | `undefined` |
 | `maxDate`         | `max-date`          |             | `string` | `undefined` |
+| `selectedColor`   | `selected-color`    |             | `string` | `undefined` |
 | `selectedDate`    | `selected-date`     |             | `any`    | `undefined` |
 | `setSelectedDate` | `set-selected-date` |             | `any`    | `undefined` |
 

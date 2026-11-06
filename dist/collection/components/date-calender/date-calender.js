@@ -134,9 +134,9 @@ export class DateCalender {
                     h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }),
                     h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))),
             h("day-names", { langCode: this.langCode }),
-            h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }),
+            h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor }),
             h("div", { class: 'date-calender-footer' },
-                h("button", { class: 'today-button', onClick: this.selectToday, type: "button" }, todayLabel)));
+                h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: this.bgcolor ? { backgroundColor: this.bgcolor } : {} }, todayLabel)));
     }
     static get is() { return "date-calender"; }
     static get encapsulation() { return "shadow"; }
@@ -252,6 +252,40 @@ export class DateCalender {
             "attribute": "disable-future",
             "reflect": true,
             "defaultValue": "false"
+        },
+        "bgcolor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "bgcolor",
+            "reflect": true
+        },
+        "selectedColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "selected-color",
+            "reflect": true
         }
     }; }
     static get states() { return {

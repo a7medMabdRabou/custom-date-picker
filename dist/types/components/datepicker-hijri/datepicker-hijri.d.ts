@@ -8,8 +8,12 @@ export declare class DatepickerHijri {
     onDateSelectClose: any;
     maxDate: string;
     disableFuture: any;
+    bgcolor: string;
+    bgColor: string;
+    selectedColor: string;
     displayCalender: boolean;
     calenderContainerId: string;
+    private getEffectiveBgColor;
     private shouldCloseOnDateSelect;
     getSupportedFormats(): string[];
     handleOnfocus(): void;

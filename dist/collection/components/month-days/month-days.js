@@ -50,8 +50,16 @@ export class MonthDays {
         }
         for (let i = 1; i < this.monthDays() + 1; i++) {
             const isFuture = this.isAfterMaxDate(i);
-            daysList.push(h("div", { class: 'month-day ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() },
-                h("button", { class: 'month-day-button ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture }, i)));
+            const isSelected = this.isSelectedDate(i);
+            let btnStyle = {};
+            if (isSelected && this.selectedColor) {
+                btnStyle.backgroundColor = this.selectedColor;
+            }
+            else if (!isSelected && !isFuture && this.bgcolor) {
+                btnStyle.backgroundColor = this.bgcolor;
+            }
+            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() },
+                h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture, style: btnStyle }, i)));
         }
         return h("div", { class: 'month-days' }, daysList);
     }
@@ -148,6 +156,40 @@ export class MonthDays {
             },
             "attribute": "max-date",
             "reflect": false
+        },
+        "bgcolor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "bgcolor",
+            "reflect": true
+        },
+        "selectedColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "selected-color",
+            "reflect": true
         }
     }; }
 }

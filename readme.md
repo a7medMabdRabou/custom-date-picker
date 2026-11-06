@@ -218,11 +218,24 @@ In your template (`app.component.html`):
 | `disable-future` | `disableFuture` | `boolean` | `false` | تعطيل اختيار التواريخ المستقبلية (اليوم هو الحد الأقصى). |
 | `max-date` | `maxDate` | `string` | `undefined` | حد أقصى مخصص للتاريخ (أي تاريخ بعده يكون معطلاً). |
 | `on-date-select-close` | `onDateSelectClose` | `boolean` | `true` | إغلاق التقويم تلقائياً بمجرد اختيار التاريخ (مفعل افتراضياً). |
+| `bgcolor` | `bgcolor` | `string` | `'#f0f0f0'` | لون خلفية جميع خلايا التواريخ وزر "اليوم". |
+| `selectedColor` | `selectedColor` | `string` | `'black'` | لون خلفية التاريخ المحدد حالياً (`selected`). |
 | `lang-code` | `langCode` | `string` | `'ar'` | لغة العرض (`'ar'` للعربية أو `'en'` للإنجليزية). |
 
 ---
 
 ## 🛠️ Common Use Cases / سيناريوهات شائعة
+
+### ألوان مخصصة لخلفية التواريخ والتاريخ المحدد (Custom Colors):
+```html
+<input type="text" id="styledDate" placeholder="اختر التاريخ">
+<datepicker-hijri
+  reference="styledDate"
+  bgcolor="#e8f5e9"
+  selectedColor="#2e7d32"
+  placement="bottom"
+></datepicker-hijri>
+```
 
 ### منع التواريخ المستقبلية (مثل تاريخ الميلاد أو الهوية):
 ```html

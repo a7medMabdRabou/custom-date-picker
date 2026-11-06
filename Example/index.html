@@ -23,8 +23,13 @@
     <h2>تجربة محدد التاريخ الهجري</h2>
     <input type="text" id="calender" value="1441/02/01" onchange="console.log('changed')">
     <button id="calender2" onloadeddata="console.log(this)">حدد التاريخ :</button>
+    <br/><br/>
+    <label>Custom Colors (bgcolor & selectedColor):</label>
+    <input type="text" id="custom-color-input" placeholder="ألوان مخصصة">
+
     <datepicker-hijri reference="calender" disable-future placement="bottom" selected-date="1441/02/01"></datepicker-hijri>
     <datepicker-hijri reference="calender2" placement="bottom" selected-date="1441/02/01"></datepicker-hijri>
+    <datepicker-hijri reference="custom-color-input" placement="bottom" bgcolor="#e8f5e9" selectedColor="#2e7d32"></datepicker-hijri>
 
     <!-- Scripts: use local build or CDN -->
     <script type="module" src="../dist/islamic-ksa-calender/islamic-ksa-calender.esm.js"></script>

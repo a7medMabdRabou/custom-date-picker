@@ -21,6 +21,8 @@ export class DateCalender {
   @Prop() setParentSelectedDate;
   @Prop({reflect: true}) maxDate: string;
   @Prop({reflect: true}) disableFuture: any = false;
+  @Prop({reflect: true}) bgcolor: string;
+  @Prop({reflect: true}) selectedColor: string;
 
   @State() currentTime; 
 
@@ -168,10 +170,10 @@ export class DateCalender {
       </div>
     </div>
     <day-names langCode={this.langCode}></day-names>
-    <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.getEffectiveMaxDate()}></month-days>
+    <month-days currentTime={this.currentTime} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setSelectedDate={this.setSelectedDate} maxDate={this.getEffectiveMaxDate()} bgcolor={this.bgcolor} selectedColor={this.selectedColor}></month-days>
     
     <div class='date-calender-footer'>
-      <button class='today-button' onClick={this.selectToday} type="button">{todayLabel}</button>
+      <button class='today-button' onClick={this.selectToday} type="button" style={this.bgcolor ? { backgroundColor: this.bgcolor } : {}}>{todayLabel}</button>
     </div>
   </div>;
   }

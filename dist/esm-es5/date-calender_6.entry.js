@@ -4885,7 +4885,7 @@ var DateCalender = /** @class */ (function () {
     };
     DateCalender.prototype.render = function () {
         var todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
-        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }), h("div", { class: 'date-calender-footer' }, h("button", { class: 'today-button', onClick: this.selectToday, type: "button" }, todayLabel)));
+        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor }), h("div", { class: 'date-calender-footer' }, h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: this.bgcolor ? { backgroundColor: this.bgcolor } : {} }, todayLabel)));
     };
     Object.defineProperty(DateCalender, "watchers", {
         get: function () {
@@ -7384,6 +7384,9 @@ var DatepickerHijri = /** @class */ (function () {
                 _this_1.displayCalender = false;
         };
     }
+    DatepickerHijri.prototype.getEffectiveBgColor = function () {
+        return this.bgcolor || this.bgColor;
+    };
     DatepickerHijri.prototype.shouldCloseOnDateSelect = function () {
         return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
     };
@@ -7502,7 +7505,7 @@ var DatepickerHijri = /** @class */ (function () {
         tryAttach(0);
     };
     DatepickerHijri.prototype.render = function () {
-        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
+        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor }));
     };
     return DatepickerHijri;
 }());
@@ -7530,7 +7533,7 @@ var DayNames = /** @class */ (function () {
     return DayNames;
 }());
 DayNames.style = dayNamesCss;
-var monthDaysCss = ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset !important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid black}.no-hover:hover{border:1px solid white !important}.month-day-button{cursor:pointer;border:0px;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:black !important;color:white !important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed !important;background-color:#f5f5f5 !important;color:#ccc !important;opacity:0.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}";
+var monthDaysCss = ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset !important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid black}.no-hover:hover{border:1px solid white !important}.month-day-button{cursor:pointer;border:0px;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:black;color:white !important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed !important;background-color:#f5f5f5 !important;color:#ccc !important;opacity:0.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}";
 var MonthDays = /** @class */ (function () {
     function MonthDays(hostRef) {
         registerInstance(this, hostRef);
@@ -7582,7 +7585,15 @@ var MonthDays = /** @class */ (function () {
         }
         for (var i_2 = 1; i_2 < this.monthDays() + 1; i_2++) {
             var isFuture = this.isAfterMaxDate(i_2);
-            daysList.push(h("div", { class: 'month-day ' + (this.isSelectedDate(i_2) ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, h("button", { class: 'month-day-button ' + (this.isSelectedDate(i_2) ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i_2, type: "button", disabled: isFuture }, i_2)));
+            var isSelected = this.isSelectedDate(i_2);
+            var btnStyle = {};
+            if (isSelected && this.selectedColor) {
+                btnStyle.backgroundColor = this.selectedColor;
+            }
+            else if (!isSelected && !isFuture && this.bgcolor) {
+                btnStyle.backgroundColor = this.bgcolor;
+            }
+            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i_2, type: "button", disabled: isFuture, style: btnStyle }, i_2)));
         }
         return h("div", { class: 'month-days' }, daysList);
     };

@@ -5688,7 +5688,7 @@ const DateCalender = class {
     }
     render() {
         const todayLabel = this.langCode === 'ar' ? 'اليوم' : 'Today';
-        return index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate() }), index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: 'today-button', onClick: this.selectToday, type: "button" }, todayLabel)));
+        return index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button" }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor }), index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: this.bgcolor ? { backgroundColor: this.bgcolor } : {} }, todayLabel)));
     }
     static get watchers() { return {
         "selectedDate": ["watchHandler"]
@@ -8535,6 +8535,9 @@ const DatepickerHijri = class {
                 this.displayCalender = false;
         };
     }
+    getEffectiveBgColor() {
+        return this.bgcolor || this.bgColor;
+    }
     shouldCloseOnDateSelect() {
         return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
     }
@@ -8651,7 +8654,7 @@ const DatepickerHijri = class {
         tryAttach(0);
     }
     render() {
-        return index.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
+        return index.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor }));
     }
 };
 
@@ -8680,7 +8683,7 @@ const DayNames = class {
 };
 DayNames.style = dayNamesCss;
 
-const monthDaysCss = ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset !important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid black}.no-hover:hover{border:1px solid white !important}.month-day-button{cursor:pointer;border:0px;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:black !important;color:white !important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed !important;background-color:#f5f5f5 !important;color:#ccc !important;opacity:0.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}";
+const monthDaysCss = ".month-days{text-align:right;display:-ms-flexbox;display:flex;-ms-flex-flow:wrap;flex-flow:wrap}.month-day{margin:2px;width:30px;padding:1px;border:1px solid #fff;text-align:center;-webkit-box-sizing:unset !important;box-sizing:unset;border-radius:4px}.month-day:hover{border:1px solid black}.no-hover:hover{border:1px solid white !important}.month-day-button{cursor:pointer;border:0px;width:30px;padding:5px;font-size:14px;border-radius:4px;background-color:#f0f0f0}.month-day-button.selected{background-color:black;color:white !important}.month-day-button:focus{outline:unset}.month-day-button.disabled{cursor:not-allowed !important;background-color:#f5f5f5 !important;color:#ccc !important;opacity:0.6;pointer-events:none}.month-day.disabled:hover{border:1px solid #fff}";
 
 const MonthDays = class {
     constructor(hostRef) {
@@ -8733,7 +8736,15 @@ const MonthDays = class {
         }
         for (let i = 1; i < this.monthDays() + 1; i++) {
             const isFuture = this.isAfterMaxDate(i);
-            daysList.push(index.h("div", { class: 'month-day ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, index.h("button", { class: 'month-day-button ' + (this.isSelectedDate(i) ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture }, i)));
+            const isSelected = this.isSelectedDate(i);
+            let btnStyle = {};
+            if (isSelected && this.selectedColor) {
+                btnStyle.backgroundColor = this.selectedColor;
+            }
+            else if (!isSelected && !isFuture && this.bgcolor) {
+                btnStyle.backgroundColor = this.bgcolor;
+            }
+            daysList.push(index.h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), key: daysList.length.toString() }, index.h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isFuture ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isFuture, style: btnStyle }, i)));
         }
         return index.h("div", { class: 'month-days' }, daysList);
     }

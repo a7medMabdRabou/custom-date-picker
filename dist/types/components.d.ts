@@ -8,6 +8,7 @@ import { HTMLStencilElement, JSXBase } from "./stencil-public-runtime";
 import { Placement } from "popper.js";
 export namespace Components {
     interface DateCalender {
+        "bgcolor": string;
         "dateFormat": string;
         "disableFuture": any;
         /**
@@ -15,10 +16,13 @@ export namespace Components {
          */
         "langCode": string;
         "maxDate": string;
+        "selectedColor": string;
         "selectedDate": string;
         "setParentSelectedDate": any;
     }
     interface DatepickerHijri {
+        "bgColor": string;
+        "bgcolor": string;
         "dateFormat": string;
         "disableFuture": any;
         "langCode": string;
@@ -26,6 +30,7 @@ export namespace Components {
         "onDateSelectClose": any;
         "placement": Placement;
         "reference": string;
+        "selectedColor": string;
         "selectedDate": string;
     }
     interface DayNames {
@@ -35,9 +40,11 @@ export namespace Components {
         "langCode": string;
     }
     interface MonthDays {
+        "bgcolor": string;
         "currentTime": any;
         "dateFormat": any;
         "maxDate": string;
+        "selectedColor": string;
         "selectedDate": any;
         "setSelectedDate": any;
     }
@@ -102,6 +109,7 @@ declare global {
 }
 declare namespace LocalJSX {
     interface DateCalender {
+        "bgcolor"?: string;
         "dateFormat"?: string;
         "disableFuture"?: any;
         /**
@@ -109,10 +117,13 @@ declare namespace LocalJSX {
          */
         "langCode"?: string;
         "maxDate"?: string;
+        "selectedColor"?: string;
         "selectedDate"?: string;
         "setParentSelectedDate"?: any;
     }
     interface DatepickerHijri {
+        "bgColor"?: string;
+        "bgcolor"?: string;
         "dateFormat"?: string;
         "disableFuture"?: any;
         "langCode"?: string;
@@ -120,6 +131,7 @@ declare namespace LocalJSX {
         "onDateSelectClose"?: any;
         "placement"?: Placement;
         "reference"?: string;
+        "selectedColor"?: string;
         "selectedDate"?: string;
     }
     interface DayNames {
@@ -129,9 +141,11 @@ declare namespace LocalJSX {
         "langCode"?: string;
     }
     interface MonthDays {
+        "bgcolor"?: string;
         "currentTime"?: any;
         "dateFormat"?: any;
         "maxDate"?: string;
+        "selectedColor"?: string;
         "selectedDate"?: any;
         "setSelectedDate"?: any;
     }

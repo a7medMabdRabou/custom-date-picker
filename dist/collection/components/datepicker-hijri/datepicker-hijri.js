@@ -24,6 +24,9 @@ export class DatepickerHijri {
                 this.displayCalender = false;
         };
     }
+    getEffectiveBgColor() {
+        return this.bgcolor || this.bgColor;
+    }
     shouldCloseOnDateSelect() {
         return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
     }
@@ -141,7 +144,7 @@ export class DatepickerHijri {
     }
     render() {
         return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px' } },
-            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture }));
+            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, disableFuture: this.disableFuture, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor }));
     }
     static get is() { return "datepicker-hijri"; }
     static get properties() { return {
@@ -291,6 +294,57 @@ export class DatepickerHijri {
             "attribute": "disable-future",
             "reflect": true,
             "defaultValue": "false"
+        },
+        "bgcolor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "bgcolor",
+            "reflect": true
+        },
+        "bgColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "bg-color",
+            "reflect": true
+        },
+        "selectedColor": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "selected-color",
+            "reflect": true
         }
     }; }
     static get states() { return {

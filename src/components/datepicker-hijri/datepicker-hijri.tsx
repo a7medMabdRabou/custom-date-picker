@@ -17,9 +17,16 @@ export class DatepickerHijri {
   @Prop() onDateSelectClose: any = true;
   @Prop({reflect: true}) maxDate: string;
   @Prop({reflect: true}) disableFuture: any = false;
+  @Prop({reflect: true}) bgcolor: string;
+  @Prop({reflect: true}) bgColor: string;
+  @Prop({reflect: true}) selectedColor: string;
 
   @State() displayCalender: boolean = false;
   @State() calenderContainerId: string;
+
+  private getEffectiveBgColor(): string {
+    return this.bgcolor || this.bgColor;
+  }
 
   private shouldCloseOnDateSelect(): boolean {
     return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
@@ -164,7 +171,7 @@ export class DatepickerHijri {
 
   render() {
     return <div id={this.calenderContainerId} style={{ 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': '99999', 'margin': '5px'}}>
-            <date-calender langCode={this.langCode} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setParentSelectedDate={this.setSelectedDate} maxDate={this.maxDate} disableFuture={this.disableFuture}></date-calender>
+            <date-calender langCode={this.langCode} dateFormat={this.dateFormat} selectedDate={this.selectedDate} setParentSelectedDate={this.setSelectedDate} maxDate={this.maxDate} disableFuture={this.disableFuture} bgcolor={this.getEffectiveBgColor()} selectedColor={this.selectedColor}></date-calender>
       </div>
   }
 }
