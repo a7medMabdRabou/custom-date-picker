@@ -13,11 +13,10 @@ export namespace Components {
         "disableFuture": any;
         "disablePast": any;
         "hideToday": any;
-        /**
-          * The language code
-         */
         "langCode": string;
+        "max": string;
         "maxDate": string;
+        "min": string;
         "minDate": string;
         "selectedColor": string;
         "selectedDate": string;
@@ -35,7 +34,9 @@ export namespace Components {
         "disabled": any;
         "hideToday": any;
         "langCode": string;
+        "max": string;
         "maxDate": string;
+        "min": string;
         "minDate": string;
         "onDateSelectClose": any;
         "placeholder": string;
@@ -134,11 +135,10 @@ declare namespace LocalJSX {
         "disableFuture"?: any;
         "disablePast"?: any;
         "hideToday"?: any;
-        /**
-          * The language code
-         */
         "langCode"?: string;
+        "max"?: string;
         "maxDate"?: string;
+        "min"?: string;
         "minDate"?: string;
         "selectedColor"?: string;
         "selectedDate"?: string;
@@ -156,7 +156,9 @@ declare namespace LocalJSX {
         "disabled"?: any;
         "hideToday"?: any;
         "langCode"?: string;
+        "max"?: string;
         "maxDate"?: string;
+        "min"?: string;
         "minDate"?: string;
         "onDateSelectClose"?: any;
         "placeholder"?: string;

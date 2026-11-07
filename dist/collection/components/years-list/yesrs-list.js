@@ -1,5 +1,5 @@
 import { Component, Prop, h } from '@stencil/core';
-import moment from 'moment-hijri';
+import { parseHijriDate } from '../../utils/date-utils';
 export class YearsList {
     constructor() {
         this.minYear = 1356;
@@ -11,15 +11,27 @@ export class YearsList {
         let maxYear = this.maxYear;
         let minYear = this.minYear;
         if (this.maxDate) {
-            maxYear = moment(this.maxDate, this.dateFormat).iYear();
+            const maxM = parseHijriDate(this.maxDate, this.dateFormat);
+            if (maxM) {
+                maxYear = maxM.iYear();
+            }
         }
         if (this.minDate) {
-            minYear = moment(this.minDate, this.dateFormat).iYear();
+            const minM = parseHijriDate(this.minDate, this.dateFormat);
+            if (minM) {
+                minYear = minM.iYear();
+            }
         }
+        if (minYear > maxYear) {
+            const tmp = minYear;
+            minYear = maxYear;
+            maxYear = tmp;
+        }
+        const currentYear = this.currentTime ? this.currentTime.iYear() : minYear;
         for (let i = minYear; i <= maxYear; i++) {
-            yearsList.push(h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
+            yearsList.push(h("option", { key: i, value: i, selected: currentYear === i }, i));
         }
-        return h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
+        return (h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList));
     }
     static get is() { return "years-list"; }
     static get encapsulation() { return "shadow"; }

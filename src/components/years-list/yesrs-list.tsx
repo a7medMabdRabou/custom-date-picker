@@ -1,5 +1,5 @@
 import { Component, Prop, h } from '@stencil/core';
-import moment from 'moment-hijri';
+import { parseHijriDate } from '../../utils/date-utils';
 
 @Component({
   tag: 'years-list',
@@ -18,28 +18,41 @@ export class YearsList {
   @Prop() dateFormat: string = 'iYYYY/iMM/iDD';
 
   render() {
-    let yearsList = []
+    let yearsList = [];
     let maxYear = this.maxYear;
     let minYear = this.minYear;
+
     if (this.maxDate) {
-      maxYear = moment(this.maxDate, this.dateFormat).iYear();
+      const maxM = parseHijriDate(this.maxDate, this.dateFormat);
+      if (maxM) {
+        maxYear = maxM.iYear();
+      }
     }
     if (this.minDate) {
-      minYear = moment(this.minDate, this.dateFormat).iYear();
+      const minM = parseHijriDate(this.minDate, this.dateFormat);
+      if (minM) {
+        minYear = minM.iYear();
+      }
     }
+
+    if (minYear > maxYear) {
+      const tmp = minYear;
+      minYear = maxYear;
+      maxYear = tmp;
+    }
+
+    const currentYear = this.currentTime ? this.currentTime.iYear() : minYear;
 
     for (let i = minYear; i <= maxYear; i++) {
       yearsList.push(
-        <option key={i} value={i} selected={this.currentTime.iYear() == i}>{i}</option>
-      )
+        <option key={i} value={i} selected={currentYear === i}>{i}</option>
+      );
     }
 
-    return <select class="years-list" onChange={this.handleYearChange}>
-      {
-        yearsList
-      }
-    </select>
+    return (
+      <select class="years-list" onChange={this.handleYearChange}>
+        {yearsList}
+      </select>
+    );
   }
 }
-
-

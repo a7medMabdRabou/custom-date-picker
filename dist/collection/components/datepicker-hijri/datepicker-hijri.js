@@ -1,7 +1,7 @@
 import { Component, Listen, h, State, Prop } from '@stencil/core';
 import Popper from 'popper.js';
 import uuid from 'uuid';
-import moment from 'moment-hijri';
+import { parseHijriDate } from '../../utils/date-utils';
 export class DatepickerHijri {
     constructor() {
         this.placement = 'bottom';
@@ -34,24 +34,39 @@ export class DatepickerHijri {
     shouldCloseOnDateSelect() {
         return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
     }
-    // List of supported formats for robust parsing
-    getSupportedFormats() {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
+    getEffectiveMaxDate() {
+        if (this.maxDate)
+            return this.maxDate;
+        if (this.max)
+            return this.max;
+        if (this.reference) {
+            const refEl = document.querySelector('#' + this.reference);
+            if (refEl) {
+                return refEl.getAttribute('max-date') || refEl.getAttribute('max') || null;
+            }
+        }
+        return null;
+    }
+    getEffectiveMinDate() {
+        if (this.minDate)
+            return this.minDate;
+        if (this.min)
+            return this.min;
+        if (this.reference) {
+            const refEl = document.querySelector('#' + this.reference);
+            if (refEl) {
+                return refEl.getAttribute('min-date') || refEl.getAttribute('min') || null;
+            }
+        }
+        return null;
     }
     handleOnfocus() {
         if (this.disabled === true || this.disabled === 'true' || this.disabled === '')
             return;
         const reference = document.querySelector('#' + this.reference);
-        if (reference) {
-            const m = moment(reference.value, this.getSupportedFormats(), true);
-            if (m && m.isValid && m.isValid()) {
+        if (reference && reference.value) {
+            const m = parseHijriDate(reference.value, this.dateFormat);
+            if (m) {
                 this.selectedDate = reference.value;
             }
         }
@@ -108,15 +123,11 @@ export class DatepickerHijri {
     }
     componentWillLoad() {
         this.calenderContainerId = uuid('datepicker-hijri');
-        // This will fix the datepicker when the selected date is null or empty (only if reference exists yet)
         const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
-        const formats = this.getSupportedFormats();
-        if (refEl && !moment(this.selectedDate, formats, true).isValid()) {
-            var selectedDate;
+        if (refEl) {
             const currentVal = refEl.getAttribute('value');
-            if (currentVal && moment(currentVal, formats, true).isValid()) {
-                selectedDate = currentVal;
-                this.selectedDate = selectedDate;
+            if (currentVal && parseHijriDate(currentVal, this.dateFormat)) {
+                this.selectedDate = currentVal;
                 this.setSelectedDate(this.selectedDate, false, false);
             }
         }
@@ -142,7 +153,6 @@ export class DatepickerHijri {
         }
     }
     componentDidLoad() {
-        // React/MUI may render the input after this component; retry until reference exists
         const tryAttach = (attempt) => {
             const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
             if (refEl) {
@@ -156,8 +166,12 @@ export class DatepickerHijri {
         tryAttach(0);
     }
     render() {
-        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px' } },
-            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, minDate: this.minDate, disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText }));
+        return (h("div", { id: this.calenderContainerId, style: {
+                'visibility': this.displayCalender ? 'visible' : 'hidden',
+                'z-index': this.zIndex || '99999',
+                'margin': '5px'
+            } },
+            h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText })));
     }
     static get is() { return "datepicker-hijri"; }
     static get properties() { return {
@@ -290,6 +304,23 @@ export class DatepickerHijri {
             "attribute": "max-date",
             "reflect": true
         },
+        "max": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "max",
+            "reflect": true
+        },
         "minDate": {
             "type": "string",
             "mutable": false,
@@ -305,6 +336,23 @@ export class DatepickerHijri {
                 "text": ""
             },
             "attribute": "min-date",
+            "reflect": true
+        },
+        "min": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": ""
+            },
+            "attribute": "min",
             "reflect": true
         },
         "disableFuture": {

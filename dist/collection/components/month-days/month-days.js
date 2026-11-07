@@ -1,18 +1,8 @@
 import { Component, Prop, h } from '@stencil/core';
-import moment from 'moment-hijri';
+import { parseHijriDate, getHijriDaysInMonth } from '../../utils/date-utils';
 export class MonthDays {
     constructor() {
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-    }
-    getFormats() {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
     }
     getMonthStartDayName() {
         let time = this.currentTime.clone();
@@ -20,37 +10,35 @@ export class MonthDays {
         return time.format('dd');
     }
     monthDays() {
-        return this.currentTime.iDaysInMonth();
+        if (!this.currentTime)
+            return 30;
+        return getHijriDaysInMonth(this.currentTime.iYear(), this.currentTime.iMonth());
     }
     isSelectedDate(i) {
-        if (!this.selectedDate)
+        if (!this.selectedDate || !this.currentTime)
             return false;
-        let time = this.currentTime.clone();
-        time.iDate(parseInt(i, 10));
-        const selected = moment(this.selectedDate, this.getFormats(), true);
-        if (!selected.isValid())
+        const selected = parseHijriDate(this.selectedDate, this.dateFormat);
+        if (!selected)
             return false;
-        return time.isSame(selected, 'day');
+        let dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
+        return dayMoment.isSame(selected, 'day');
     }
     isAfterMaxDate(i) {
-        if (!this.maxDate)
+        if (!this.maxDate || !this.currentTime)
             return false;
-        let dayMoment = this.currentTime.clone();
-        dayMoment.iDate(parseInt(i, 10));
-        // Parse the max date string
-        let maxMoment = moment(this.maxDate, this.getFormats(), true);
-        if (!maxMoment.isValid())
+        const maxMoment = parseHijriDate(this.maxDate, this.dateFormat);
+        if (!maxMoment)
             return false;
+        let dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
         return dayMoment.isAfter(maxMoment, 'day');
     }
     isBeforeMinDate(i) {
-        if (!this.minDate)
+        if (!this.minDate || !this.currentTime)
             return false;
-        let dayMoment = this.currentTime.clone();
-        dayMoment.iDate(parseInt(i, 10));
-        let minMoment = moment(this.minDate, this.getFormats(), true);
-        if (!minMoment.isValid())
+        const minMoment = parseHijriDate(this.minDate, this.dateFormat);
+        if (!minMoment)
             return false;
+        let dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
         return dayMoment.isBefore(minMoment, 'day');
     }
     render() {
@@ -58,7 +46,8 @@ export class MonthDays {
         for (let i = this.englishDayNames.indexOf(this.getMonthStartDayName()); i > 0; i--) {
             daysList.push(h("div", { class: 'month-day no-hover', key: daysList.length.toString() }));
         }
-        for (let i = 1; i < this.monthDays() + 1; i++) {
+        const totalDays = this.monthDays();
+        for (let i = 1; i <= totalDays; i++) {
             const isFuture = this.isAfterMaxDate(i);
             const isPastDisabled = this.isBeforeMinDate(i);
             const isDisabled = isFuture || isPastDisabled;
@@ -73,13 +62,12 @@ export class MonthDays {
             if (isSelected && this.selectedTextColor) {
                 btnStyle.color = this.selectedTextColor;
             }
-            else if (!isSelected && !isDisabled && this.textColor) {
+            else if (this.textColor) {
                 btnStyle.color = this.textColor;
             }
-            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), key: daysList.length.toString() },
-                h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isDisabled, style: btnStyle }, i)));
+            daysList.push(h("button", { class: `month-day ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`, type: 'button', disabled: isDisabled, style: btnStyle, onClick: this.setSelectedDate, value: i }, i));
         }
-        return h("div", { class: 'month-days' }, daysList);
+        return (h("div", { class: 'month-days' }, daysList));
     }
     static get is() { return "month-days"; }
     static get encapsulation() { return "shadow"; }

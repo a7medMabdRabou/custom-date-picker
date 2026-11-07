@@ -1,11 +1,11 @@
 import { Component, Listen, h, State, Prop } from '@stencil/core';
 import Popper from 'popper.js';
-import {Placement} from 'popper.js';import uuid from 'uuid';
-import moment from 'moment-hijri';
+import { Placement } from 'popper.js';
+import uuid from 'uuid';
+import { parseHijriDate } from '../../utils/date-utils';
 
 @Component({
   tag: 'datepicker-hijri',
-  // styleUrl: 'tippy.js/dist/tippy.css'
 })
 export class DatepickerHijri {
 
@@ -16,7 +16,9 @@ export class DatepickerHijri {
   @Prop({reflect: true}) dateFormat: string = 'iYYYY/iMM/iDD';
   @Prop() onDateSelectClose: any = true;
   @Prop({reflect: true}) maxDate: string;
+  @Prop({reflect: true}) max: string;
   @Prop({reflect: true}) minDate: string;
+  @Prop({reflect: true}) min: string;
   @Prop({reflect: true}) disableFuture: any = false;
   @Prop({reflect: true}) disablePast: any = false;
   @Prop({reflect: true}) bgcolor: string;
@@ -41,25 +43,36 @@ export class DatepickerHijri {
     return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
   }
 
-  // List of supported formats for robust parsing
-  getSupportedFormats() {
-    return [
-      this.dateFormat,
-      'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-      'iYYYY-iM-iD', 'iYYYY/iM/iD',
-      'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-      'iD-iM-iYYYY', 'iD/iM/iYYYY',
-      'iYYYY-iD-iM', 'iYYYY/iD/iM'
-    ];
+  private getEffectiveMaxDate(): string | null {
+    if (this.maxDate) return this.maxDate;
+    if (this.max) return this.max;
+    if (this.reference) {
+      const refEl = document.querySelector('#' + this.reference);
+      if (refEl) {
+        return refEl.getAttribute('max-date') || refEl.getAttribute('max') || null;
+      }
+    }
+    return null;
   }
 
-  handleOnfocus()
-  {
+  private getEffectiveMinDate(): string | null {
+    if (this.minDate) return this.minDate;
+    if (this.min) return this.min;
+    if (this.reference) {
+      const refEl = document.querySelector('#' + this.reference);
+      if (refEl) {
+        return refEl.getAttribute('min-date') || refEl.getAttribute('min') || null;
+      }
+    }
+    return null;
+  }
+
+  handleOnfocus() {
     if (this.disabled === true || this.disabled === 'true' || this.disabled === '') return;
-    const reference = document.querySelector('#'+this.reference) as HTMLInputElement;
-    if (reference) {
-      const m = moment(reference.value, this.getSupportedFormats(), true);
-      if (m && m.isValid && m.isValid()) {
+    const reference = document.querySelector('#' + this.reference) as HTMLInputElement;
+    if (reference && reference.value) {
+      const m = parseHijriDate(reference.value, this.dateFormat);
+      if (m) {
         this.selectedDate = reference.value;
       }
     }
@@ -120,7 +133,7 @@ export class DatepickerHijri {
   setSelectedDate = (selectedDate, triggerEvent = true, closePicker = true) => {
     this.selectedDate = selectedDate;
 
-    var reference = document.querySelector('#'+this.reference);
+    var reference = document.querySelector('#' + this.reference);
     if (reference) {
       reference.setAttribute('value', this.selectedDate);
       (reference as HTMLInputElement).value = this.selectedDate;
@@ -133,19 +146,13 @@ export class DatepickerHijri {
   }
 
   componentWillLoad() {
-    this.calenderContainerId = uuid('datepicker-hijri')
+    this.calenderContainerId = uuid('datepicker-hijri');
 
-    // This will fix the datepicker when the selected date is null or empty (only if reference exists yet)
     const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
-    const formats = this.getSupportedFormats();
-
-    if (refEl && !moment(this.selectedDate, formats, true).isValid()) {
-      var selectedDate;
+    if (refEl) {
       const currentVal = refEl.getAttribute('value');
-      
-      if (currentVal && moment(currentVal, formats, true).isValid()) {
-        selectedDate = currentVal;
-        this.selectedDate = selectedDate;
+      if (currentVal && parseHijriDate(currentVal, this.dateFormat)) {
+        this.selectedDate = currentVal;
         this.setSelectedDate(this.selectedDate, false, false);
       }
     }
@@ -174,7 +181,6 @@ export class DatepickerHijri {
   }
 
   componentDidLoad() {
-    // React/MUI may render the input after this component; retry until reference exists
     const tryAttach = (attempt: number) => {
       const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
       if (refEl) {
@@ -189,25 +195,32 @@ export class DatepickerHijri {
   }
 
   render() {
-    return <div id={this.calenderContainerId} style={{ 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px'}}>
-            <date-calender
-              langCode={this.langCode}
-              dateFormat={this.dateFormat}
-              selectedDate={this.selectedDate}
-              setParentSelectedDate={this.setSelectedDate}
-              maxDate={this.maxDate}
-              minDate={this.minDate}
-              disableFuture={this.disableFuture}
-              disablePast={this.disablePast}
-              bgcolor={this.getEffectiveBgColor()}
-              selectedColor={this.selectedColor}
-              textColor={this.textColor}
-              selectedTextColor={this.selectedTextColor}
-              hideToday={this.hideToday}
-              todayText={this.todayText}
-            ></date-calender>
+    return (
+      <div
+        id={this.calenderContainerId}
+        style={{
+          'visibility': this.displayCalender ? 'visible' : 'hidden',
+          'z-index': this.zIndex || '99999',
+          'margin': '5px'
+        }}
+      >
+        <date-calender
+          langCode={this.langCode}
+          dateFormat={this.dateFormat}
+          selectedDate={this.selectedDate}
+          setParentSelectedDate={this.setSelectedDate}
+          maxDate={this.getEffectiveMaxDate()}
+          minDate={this.getEffectiveMinDate()}
+          disableFuture={this.disableFuture}
+          disablePast={this.disablePast}
+          bgcolor={this.getEffectiveBgColor()}
+          selectedColor={this.selectedColor}
+          textColor={this.textColor}
+          selectedTextColor={this.selectedTextColor}
+          hideToday={this.hideToday}
+          todayText={this.todayText}
+        ></date-calender>
       </div>
+    );
   }
 }
-
-

@@ -10,9 +10,8 @@ export declare class MonthDays {
     selectedColor: string;
     textColor: string;
     selectedTextColor: string;
-    getFormats(): any[];
     getMonthStartDayName(): any;
-    monthDays(): any;
+    monthDays(): number;
     isSelectedDate(i: any): any;
     isAfterMaxDate(i: any): any;
     isBeforeMinDate(i: any): any;

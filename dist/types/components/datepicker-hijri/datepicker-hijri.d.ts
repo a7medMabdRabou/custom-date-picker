@@ -7,7 +7,9 @@ export declare class DatepickerHijri {
     dateFormat: string;
     onDateSelectClose: any;
     maxDate: string;
+    max: string;
     minDate: string;
+    min: string;
     disableFuture: any;
     disablePast: any;
     bgcolor: string;
@@ -24,7 +26,8 @@ export declare class DatepickerHijri {
     calenderContainerId: string;
     private getEffectiveBgColor;
     private shouldCloseOnDateSelect;
-    getSupportedFormats(): string[];
+    private getEffectiveMaxDate;
+    private getEffectiveMinDate;
     handleOnfocus(): void;
     private isClickOnReference;
     private isClickInsideCalender;

@@ -1,5 +1,5 @@
 import { Component, Prop, h } from '@stencil/core';
-import moment from 'moment-hijri';
+import { parseHijriDate } from '../../utils/date-utils';
 
 @Component({
   tag: 'months-list',
@@ -23,7 +23,6 @@ export class MonthsList {
     {number: 11, name: 'ذو الحجة'},
   ];
 
-
   @Prop() currentTime;
   @Prop() handleMonthChange;
   @Prop() maxDate: string;
@@ -31,32 +30,31 @@ export class MonthsList {
   @Prop() dateFormat: string = 'iYYYY/iMM/iDD';
 
   render() {
-    let monthsList = []
+    let monthsList = [];
+    const curYear = this.currentTime ? this.currentTime.iYear() : 1446;
+    const curMonth = this.currentTime ? this.currentTime.iMonth() : 0;
+    const maxM = this.maxDate ? parseHijriDate(this.maxDate, this.dateFormat) : null;
+    const minM = this.minDate ? parseHijriDate(this.minDate, this.dateFormat) : null;
 
     for (let i = 0; i < this.months.length; i++) {
-      if (this.maxDate) {
-        let maxDateMoment = moment(this.maxDate, this.dateFormat);
-        if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
-          continue;
-        }
+      const monthNum = this.months[i].number;
+      if (maxM) {
+        if (curYear > maxM.iYear()) continue;
+        if (curYear === maxM.iYear() && monthNum > maxM.iMonth()) continue;
       }
-      if (this.minDate) {
-        let minDateMoment = moment(this.minDate, this.dateFormat);
-        if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i].number < minDateMoment.iMonth()) {
-          continue;
-        }
+      if (minM) {
+        if (curYear < minM.iYear()) continue;
+        if (curYear === minM.iYear() && monthNum < minM.iMonth()) continue;
       }
       monthsList.push(
-        <option key={this.months[i].number} value={this.months[i].number} selected={this.currentTime.iMonth() == this.months[i].number}>{this.months[i].name}</option>
-      )
+        <option key={monthNum} value={monthNum} selected={curMonth === monthNum}>{this.months[i].name}</option>
+      );
     }
 
-    return <select class="months-list" onChange={this.handleMonthChange}>
-      {
-        monthsList
-      }
-    </select>
+    return (
+      <select class="months-list" onChange={this.handleMonthChange}>
+        {monthsList}
+      </select>
+    );
   }
 }
-
-

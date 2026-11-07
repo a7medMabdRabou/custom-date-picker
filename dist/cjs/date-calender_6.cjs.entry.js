@@ -5563,6 +5563,98 @@ var momentHijri = createCommonjsModule(function (module, exports) {
 });
 });
 
+const STANDARD_HIJRI_FORMATS = [
+    'iYYYY/iMM/iDD',
+    'iYYYY-iMM-iDD',
+    'iYYYY/iM/iD',
+    'iYYYY-iM-iD',
+    'iDD/iMM/iYYYY',
+    'iDD-iMM-iYYYY',
+    'iD/iM/iYYYY',
+    'iD-iM-iYYYY'
+];
+/**
+ * Safely get the number of days in a Hijri month.
+ * Avoids the parseInt NaN bug on Arabic numerals in moment().iDaysInMonth().
+ */
+function getHijriDaysInMonth(year, monthZeroIndexed) {
+    try {
+        const days = momentHijri.iDaysInMonth(year, monthZeroIndexed);
+        if (typeof days === 'number' && !isNaN(days) && days > 0) {
+            return days;
+        }
+    }
+    catch (e) { }
+    return 30;
+}
+/**
+ * Robustly parses any Hijri date string into a Moment object.
+ * Handles:
+ * - Standard moment parsing
+ * - Day clamping for months with 29 days (e.g. 1446/12/30 -> 1446/12/29)
+ * - YYYY/MM/DD, YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+ */
+function parseHijriDate(dateStr, preferredFormat) {
+    if (!dateStr)
+        return null;
+    const str = ('' + dateStr).trim();
+    if (!str)
+        return null;
+    // 1. Regex extraction for YYYY/MM/DD or YYYY-MM-DD
+    const ymdMatch = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+    if (ymdMatch) {
+        const y = parseInt(ymdMatch[1], 10);
+        const mIndex = parseInt(ymdMatch[2], 10) - 1;
+        let d = parseInt(ymdMatch[3], 10);
+        if (mIndex >= 0 && mIndex < 12 && y >= 1300 && y <= 1600) {
+            const maxDays = getHijriDaysInMonth(y, mIndex);
+            if (d > maxDays)
+                d = maxDays;
+            if (d < 1)
+                d = 1;
+            const res = momentHijri().iYear(y).iMonth(mIndex).iDate(d).startOf('day');
+            if (res && res.isValid && res.isValid())
+                return res;
+        }
+    }
+    // 2. Regex extraction for DD/MM/YYYY or DD-MM-YYYY
+    const dmyMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (dmyMatch) {
+        let d = parseInt(dmyMatch[1], 10);
+        const mIndex = parseInt(dmyMatch[2], 10) - 1;
+        const y = parseInt(dmyMatch[3], 10);
+        if (mIndex >= 0 && mIndex < 12 && y >= 1300 && y <= 1600) {
+            const maxDays = getHijriDaysInMonth(y, mIndex);
+            if (d > maxDays)
+                d = maxDays;
+            if (d < 1)
+                d = 1;
+            const res = momentHijri().iYear(y).iMonth(mIndex).iDate(d).startOf('day');
+            if (res && res.isValid && res.isValid())
+                return res;
+        }
+    }
+    // 3. Preferred format
+    if (preferredFormat) {
+        try {
+            const m = momentHijri(str, preferredFormat, true);
+            if (m && m.isValid && m.isValid())
+                return m.startOf('day');
+        }
+        catch (e) { }
+    }
+    // 4. Standard formats individually
+    for (const fmt of STANDARD_HIJRI_FORMATS) {
+        try {
+            const m = momentHijri(str, fmt, true);
+            if (m && m.isValid && m.isValid())
+                return m.startOf('day');
+        }
+        catch (e) { }
+    }
+    return null;
+}
+
 const dateCalenderCss = ".date-calender{width:266px;direction:rtl;background:#ffffff;padding:15px;border:1px solid #ddd;margin-top:2px;font-family:serif;box-sizing:unset;-webkit-box-sizing:unset;font-size:14px;border-radius:4px;z-index:1000;color:black !important}.date-calender-controls{direction:rtl;text-align:center}.control-button{position:absolute;border:0px;font-weight:bold;font-size:15px;cursor:pointer;background-color:#fff}.control-button:hover{color:#888888}.control-button:focus{outline:unset}.previous-button{right:15px}.next-button{left:15px}.date-calender-footer{margin-top:10px;text-align:center;border-top:1px solid #eee;padding-top:5px}.today-button{background:#f0f0f0;border:1px solid #ddd;padding:5px 15px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;width:100%;-webkit-transition:background 0.2s;transition:background 0.2s}.today-button:hover{background:#e0e0e0}";
 
 const DateCalender = class {
@@ -5571,9 +5663,6 @@ const DateCalender = class {
         this.arabicDayNames = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
         this.arabicFullDayNames = ['احد', 'اثنين', 'ثلاثاء', 'اربعاء', 'خميس', 'جمعة', 'سبت'];
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-        /**
-         * The language code
-         */
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
@@ -5581,156 +5670,190 @@ const DateCalender = class {
         this.disablePast = false;
         this.hideToday = false;
         this.subtractMonth = () => {
-            this.currentTime = this.currentTime.clone().subtract(1, 'iMonth');
+            let prev = this.currentTime.clone().subtract(1, 'iMonth');
+            const maxDays = getHijriDaysInMonth(prev.iYear(), prev.iMonth());
+            if (prev.iDate() > maxDays)
+                prev.iDate(maxDays);
+            this.currentTime = this.clampTimeToRange(prev);
         };
         this.addMonth = () => {
-            this.currentTime = this.currentTime.clone().add(1, 'iMonth');
+            let next = this.currentTime.clone().add(1, 'iMonth');
+            const maxDays = getHijriDaysInMonth(next.iYear(), next.iMonth());
+            if (next.iDate() > maxDays)
+                next.iDate(maxDays);
+            this.currentTime = this.clampTimeToRange(next);
         };
         this.setSelectedDate = (event) => {
             let time = this.currentTime.clone();
             time.iDate(parseInt(event.target.value, 10));
             const selectedDate = time.format(this.dateFormat);
-            // We shouldn't mutate the prop directly if not intended, but keeping consistent with existing logic pattern
-            // However, setParentSelectedDate is the key.
             if (this.setParentSelectedDate) {
                 this.setParentSelectedDate(selectedDate, true, true);
             }
         };
         this.handleYearChange = (event) => {
-            // Clone to avoid mutating state directly
-            let time = this.currentTime.clone();
-            time.iYear(parseInt(event.target.value, 10));
-            const selectedDate = time.format(this.dateFormat);
-            if (this.setParentSelectedDate) {
-                this.setParentSelectedDate(selectedDate, true, false);
+            const newYear = parseInt(event.target.value, 10);
+            let time = this.currentTime.clone().iYear(newYear);
+            const maxDays = getHijriDaysInMonth(time.iYear(), time.iMonth());
+            if (time.iDate() > maxDays) {
+                time.iDate(maxDays);
             }
+            time = this.clampTimeToRange(time);
+            this.currentTime = time;
         };
         this.handleMonthChange = (event) => {
-            let time = this.currentTime.clone();
-            time.iMonth(parseInt(event.target.value, 10));
-            const selectedDate = time.format(this.dateFormat);
-            if (this.setParentSelectedDate) {
-                this.setParentSelectedDate(selectedDate, true, false);
+            const newMonth = parseInt(event.target.value, 10);
+            let time = this.currentTime.clone().iMonth(newMonth);
+            const maxDays = getHijriDaysInMonth(time.iYear(), time.iMonth());
+            if (time.iDate() > maxDays) {
+                time.iDate(maxDays);
             }
+            time = this.clampTimeToRange(time);
+            this.currentTime = time;
         };
         this.selectToday = () => {
-            // 1. Set current time to today
-            // Fix: User reported Hijri date is 1 day behind. Adding 1 day to match observation.
+            if (!this.isTodayAllowed())
+                return;
             this.currentTime = momentHijri().add(1, 'day');
-            // 2. Format it according to the requested format
             const todayStr = this.currentTime.format(this.dateFormat);
-            // 3. Update parent
             if (this.setParentSelectedDate) {
                 this.setParentSelectedDate(todayStr, true, true);
             }
         };
     }
     componentWillLoad() {
-        this.currentTime = this.getMoment(this.selectedDate);
+        let initialTime = parseHijriDate(this.selectedDate, this.dateFormat) || momentHijri();
+        this.currentTime = this.clampTimeToRange(initialTime);
     }
-    getFormats() {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
+    watchSelectedDate(newValue) {
+        const parsed = parseHijriDate(newValue, this.dateFormat);
+        if (parsed) {
+            this.currentTime = this.clampTimeToRange(parsed);
+        }
     }
-    getMoment(dateStr) {
-        if (!dateStr)
-            return momentHijri();
-        const m = momentHijri(dateStr, this.getFormats(), true);
-        return m.isValid() ? m : momentHijri();
+    watchConstraints() {
+        this.currentTime = this.clampTimeToRange(this.currentTime);
     }
-    watchHandler(newValue) {
-        this.currentTime = this.getMoment(newValue);
+    clampTimeToRange(time) {
+        if (!time)
+            time = momentHijri();
+        let t = time.clone();
+        const maxStr = this.getEffectiveMaxDate();
+        const minStr = this.getEffectiveMinDate();
+        if (maxStr) {
+            const maxM = parseHijriDate(maxStr, this.dateFormat);
+            if (maxM && t.isAfter(maxM, 'day')) {
+                t = maxM.clone();
+            }
+        }
+        if (minStr) {
+            const minM = parseHijriDate(minStr, this.dateFormat);
+            if (minM && t.isBefore(minM, 'day')) {
+                t = minM.clone();
+            }
+        }
+        return t;
     }
     getEffectiveMaxDate() {
-        let effectiveMaxDate = this.maxDate;
-        // Check for any variant of "truthy" for disableFuture
+        let effectiveMax = this.maxDate || this.max || null;
         const df = this.disableFuture;
         const isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
         if (isFutureDisabled) {
-            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" (21st) is enabled
             const todayObj = momentHijri().add(1, 'day');
-            const today = todayObj.format(this.dateFormat);
-            if (!effectiveMaxDate) {
-                return today;
+            const todayStr = todayObj.format(this.dateFormat);
+            if (!effectiveMax) {
+                return todayStr;
             }
-            const todayMoment = todayObj;
-            const maxMoment = momentHijri(effectiveMaxDate, this.getFormats(), true);
-            if (!maxMoment.isValid())
-                return today;
-            if (todayMoment.isBefore(maxMoment, 'day')) {
-                return today;
+            const maxM = parseHijriDate(effectiveMax, this.dateFormat);
+            if (!maxM)
+                return todayStr;
+            if (todayObj.isBefore(maxM, 'day')) {
+                return todayStr;
             }
         }
-        return effectiveMaxDate;
+        return effectiveMax;
     }
     getEffectiveMinDate() {
-        let effectiveMinDate = this.minDate;
+        let effectiveMin = this.minDate || this.min || null;
         const dp = this.disablePast;
         const isPastDisabled = dp === true || dp === 'true' || dp === '' || dp === 'disable-past';
         if (isPastDisabled) {
-            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" is enabled
             const todayObj = momentHijri().add(1, 'day');
-            const today = todayObj.format(this.dateFormat);
-            if (!effectiveMinDate) {
-                return today;
+            const todayStr = todayObj.format(this.dateFormat);
+            if (!effectiveMin) {
+                return todayStr;
             }
-            const todayMoment = todayObj;
-            const minMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
-            if (!minMoment.isValid())
-                return today;
-            if (todayMoment.isAfter(minMoment, 'day')) {
-                return today;
+            const minM = parseHijriDate(effectiveMin, this.dateFormat);
+            if (!minM)
+                return todayStr;
+            if (todayObj.isAfter(minM, 'day')) {
+                return todayStr;
             }
         }
-        return effectiveMinDate;
+        return effectiveMin;
     }
     isBeforeMinMonth() {
-        const effectiveMinDate = this.getEffectiveMinDate();
-        if (!effectiveMinDate)
+        const minStr = this.getEffectiveMinDate();
+        if (!minStr || !this.currentTime)
             return false;
-        const minDateMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
-        if (!minDateMoment.isValid())
+        const minM = parseHijriDate(minStr, this.dateFormat);
+        if (!minM)
             return false;
-        let prevMonth = this.currentTime.clone().subtract(1, 'iMonth').endOf('iMonth');
-        return prevMonth.isBefore(minDateMoment, 'day');
+        let prevMonth = this.currentTime.clone().subtract(1, 'iMonth');
+        const maxDays = getHijriDaysInMonth(prevMonth.iYear(), prevMonth.iMonth());
+        prevMonth.iDate(maxDays).startOf('day');
+        return prevMonth.isBefore(minM, 'day');
     }
     isAfterMaxMonth() {
-        const effectiveMaxDate = this.getEffectiveMaxDate();
-        if (!effectiveMaxDate)
+        const maxStr = this.getEffectiveMaxDate();
+        if (!maxStr || !this.currentTime)
             return false;
-        // Check if the max date is valid
-        const maxDateMoment = momentHijri(effectiveMaxDate, this.getFormats(), true);
-        if (!maxDateMoment.isValid())
+        const maxM = parseHijriDate(maxStr, this.dateFormat);
+        if (!maxM)
             return false;
-        let nextMonth = this.currentTime.clone().add(1, 'iMonth').startOf('iMonth');
-        return nextMonth.isAfter(maxDateMoment, 'day');
-    }
-    getMonthStartDayName() {
-        let time = this.currentTime;
-        time.startOf('iMonth');
-        return time.format('dd');
+        let nextMonth = this.currentTime.clone().add(1, 'iMonth').iDate(1).startOf('day');
+        return nextMonth.isAfter(maxM, 'day');
     }
     getMonthName() {
+        if (!this.currentTime)
+            return '';
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
+    }
+    isTodayAllowed() {
+        const todayObj = momentHijri().add(1, 'day').startOf('day');
+        const maxStr = this.getEffectiveMaxDate();
+        const minStr = this.getEffectiveMinDate();
+        if (maxStr) {
+            const maxM = parseHijriDate(maxStr, this.dateFormat);
+            if (maxM && todayObj.isAfter(maxM, 'day'))
+                return false;
+        }
+        if (minStr) {
+            const minM = parseHijriDate(minStr, this.dateFormat);
+            if (minM && todayObj.isBefore(minM, 'day'))
+                return false;
+        }
+        return true;
     }
     render() {
         const isTodayHidden = this.hideToday === true || this.hideToday === 'true' || this.hideToday === '' || this.hideToday === 'hide-today';
         const todayLabel = this.todayText || (this.langCode === 'ar' ? 'اليوم' : 'Today');
+        const canSelectToday = this.isTodayAllowed();
         let todayBtnStyle = {};
         if (this.bgcolor)
             todayBtnStyle.backgroundColor = this.bgcolor;
         if (this.textColor)
             todayBtnStyle.color = this.textColor;
-        return index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }), !isTodayHidden && (index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: todayBtnStyle }, todayLabel))));
+        return (index.h("div", { class: 'date-calender' }, index.h("div", { class: 'date-calender-controls' }, index.h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'), index.h("strong", { class: 'month-name' }, this.getMonthName()), index.h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), index.h("div", null, index.h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }), index.h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))), index.h("day-names", { langCode: this.langCode }), index.h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }), !isTodayHidden && (index.h("div", { class: 'date-calender-footer' }, index.h("button", { class: `today-button ${!canSelectToday ? 'disabled' : ''}`, onClick: this.selectToday, type: "button", disabled: !canSelectToday, style: todayBtnStyle }, todayLabel)))));
     }
     static get watchers() { return {
-        "selectedDate": ["watchHandler"]
+        "selectedDate": ["watchSelectedDate"],
+        "minDate": ["watchConstraints"],
+        "min": ["watchConstraints"],
+        "maxDate": ["watchConstraints"],
+        "max": ["watchConstraints"],
+        "disableFuture": ["watchConstraints"],
+        "disablePast": ["watchConstraints"]
     }; }
 };
 DateCalender.style = dateCalenderCss;
@@ -8584,24 +8707,39 @@ const DatepickerHijri = class {
     shouldCloseOnDateSelect() {
         return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
     }
-    // List of supported formats for robust parsing
-    getSupportedFormats() {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
+    getEffectiveMaxDate() {
+        if (this.maxDate)
+            return this.maxDate;
+        if (this.max)
+            return this.max;
+        if (this.reference) {
+            const refEl = document.querySelector('#' + this.reference);
+            if (refEl) {
+                return refEl.getAttribute('max-date') || refEl.getAttribute('max') || null;
+            }
+        }
+        return null;
+    }
+    getEffectiveMinDate() {
+        if (this.minDate)
+            return this.minDate;
+        if (this.min)
+            return this.min;
+        if (this.reference) {
+            const refEl = document.querySelector('#' + this.reference);
+            if (refEl) {
+                return refEl.getAttribute('min-date') || refEl.getAttribute('min') || null;
+            }
+        }
+        return null;
     }
     handleOnfocus() {
         if (this.disabled === true || this.disabled === 'true' || this.disabled === '')
             return;
         const reference = document.querySelector('#' + this.reference);
-        if (reference) {
-            const m = momentHijri(reference.value, this.getSupportedFormats(), true);
-            if (m && m.isValid && m.isValid()) {
+        if (reference && reference.value) {
+            const m = parseHijriDate(reference.value, this.dateFormat);
+            if (m) {
                 this.selectedDate = reference.value;
             }
         }
@@ -8658,15 +8796,11 @@ const DatepickerHijri = class {
     }
     componentWillLoad() {
         this.calenderContainerId = uuid_1('datepicker-hijri');
-        // This will fix the datepicker when the selected date is null or empty (only if reference exists yet)
         const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
-        const formats = this.getSupportedFormats();
-        if (refEl && !momentHijri(this.selectedDate, formats, true).isValid()) {
-            var selectedDate;
+        if (refEl) {
             const currentVal = refEl.getAttribute('value');
-            if (currentVal && momentHijri(currentVal, formats, true).isValid()) {
-                selectedDate = currentVal;
-                this.selectedDate = selectedDate;
+            if (currentVal && parseHijriDate(currentVal, this.dateFormat)) {
+                this.selectedDate = currentVal;
                 this.setSelectedDate(this.selectedDate, false, false);
             }
         }
@@ -8692,7 +8826,6 @@ const DatepickerHijri = class {
         }
     }
     componentDidLoad() {
-        // React/MUI may render the input after this component; retry until reference exists
         const tryAttach = (attempt) => {
             const refEl = this.reference ? document.querySelector('#' + this.reference) : null;
             if (refEl) {
@@ -8706,7 +8839,11 @@ const DatepickerHijri = class {
         tryAttach(0);
     }
     render() {
-        return index.h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px' } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, minDate: this.minDate, disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText }));
+        return (index.h("div", { id: this.calenderContainerId, style: {
+                'visibility': this.displayCalender ? 'visible' : 'hidden',
+                'z-index': this.zIndex || '99999',
+                'margin': '5px'
+            } }, index.h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText })));
     }
 };
 
@@ -8742,53 +8879,41 @@ const MonthDays = class {
         index.registerInstance(this, hostRef);
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     }
-    getFormats() {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
-    }
     getMonthStartDayName() {
         let time = this.currentTime.clone();
         time.startOf('iMonth');
         return time.format('dd');
     }
     monthDays() {
-        return this.currentTime.iDaysInMonth();
+        if (!this.currentTime)
+            return 30;
+        return getHijriDaysInMonth(this.currentTime.iYear(), this.currentTime.iMonth());
     }
     isSelectedDate(i) {
-        if (!this.selectedDate)
+        if (!this.selectedDate || !this.currentTime)
             return false;
-        let time = this.currentTime.clone();
-        time.iDate(parseInt(i, 10));
-        const selected = momentHijri(this.selectedDate, this.getFormats(), true);
-        if (!selected.isValid())
+        const selected = parseHijriDate(this.selectedDate, this.dateFormat);
+        if (!selected)
             return false;
-        return time.isSame(selected, 'day');
+        let dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
+        return dayMoment.isSame(selected, 'day');
     }
     isAfterMaxDate(i) {
-        if (!this.maxDate)
+        if (!this.maxDate || !this.currentTime)
             return false;
-        let dayMoment = this.currentTime.clone();
-        dayMoment.iDate(parseInt(i, 10));
-        // Parse the max date string
-        let maxMoment = momentHijri(this.maxDate, this.getFormats(), true);
-        if (!maxMoment.isValid())
+        const maxMoment = parseHijriDate(this.maxDate, this.dateFormat);
+        if (!maxMoment)
             return false;
+        let dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
         return dayMoment.isAfter(maxMoment, 'day');
     }
     isBeforeMinDate(i) {
-        if (!this.minDate)
+        if (!this.minDate || !this.currentTime)
             return false;
-        let dayMoment = this.currentTime.clone();
-        dayMoment.iDate(parseInt(i, 10));
-        let minMoment = momentHijri(this.minDate, this.getFormats(), true);
-        if (!minMoment.isValid())
+        const minMoment = parseHijriDate(this.minDate, this.dateFormat);
+        if (!minMoment)
             return false;
+        let dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
         return dayMoment.isBefore(minMoment, 'day');
     }
     render() {
@@ -8796,7 +8921,8 @@ const MonthDays = class {
         for (let i = this.englishDayNames.indexOf(this.getMonthStartDayName()); i > 0; i--) {
             daysList.push(index.h("div", { class: 'month-day no-hover', key: daysList.length.toString() }));
         }
-        for (let i = 1; i < this.monthDays() + 1; i++) {
+        const totalDays = this.monthDays();
+        for (let i = 1; i <= totalDays; i++) {
             const isFuture = this.isAfterMaxDate(i);
             const isPastDisabled = this.isBeforeMinDate(i);
             const isDisabled = isFuture || isPastDisabled;
@@ -8811,12 +8937,12 @@ const MonthDays = class {
             if (isSelected && this.selectedTextColor) {
                 btnStyle.color = this.selectedTextColor;
             }
-            else if (!isSelected && !isDisabled && this.textColor) {
+            else if (this.textColor) {
                 btnStyle.color = this.textColor;
             }
-            daysList.push(index.h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), key: daysList.length.toString() }, index.h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), onClick: this.setSelectedDate, value: i, type: "button", disabled: isDisabled, style: btnStyle }, i)));
+            daysList.push(index.h("button", { class: `month-day ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`, type: 'button', disabled: isDisabled, style: btnStyle, onClick: this.setSelectedDate, value: i }, i));
         }
-        return index.h("div", { class: 'month-days' }, daysList);
+        return (index.h("div", { class: 'month-days' }, daysList));
     }
 };
 MonthDays.style = monthDaysCss;
@@ -8844,22 +8970,27 @@ const MonthsList = class {
     }
     render() {
         let monthsList = [];
+        const curYear = this.currentTime ? this.currentTime.iYear() : 1446;
+        const curMonth = this.currentTime ? this.currentTime.iMonth() : 0;
+        const maxM = this.maxDate ? parseHijriDate(this.maxDate, this.dateFormat) : null;
+        const minM = this.minDate ? parseHijriDate(this.minDate, this.dateFormat) : null;
         for (let i = 0; i < this.months.length; i++) {
-            if (this.maxDate) {
-                let maxDateMoment = momentHijri(this.maxDate, this.dateFormat);
-                if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
+            const monthNum = this.months[i].number;
+            if (maxM) {
+                if (curYear > maxM.iYear())
                     continue;
-                }
-            }
-            if (this.minDate) {
-                let minDateMoment = momentHijri(this.minDate, this.dateFormat);
-                if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i].number < minDateMoment.iMonth()) {
+                if (curYear === maxM.iYear() && monthNum > maxM.iMonth())
                     continue;
-                }
             }
-            monthsList.push(index.h("option", { key: this.months[i].number, value: this.months[i].number, selected: this.currentTime.iMonth() == this.months[i].number }, this.months[i].name));
+            if (minM) {
+                if (curYear < minM.iYear())
+                    continue;
+                if (curYear === minM.iYear() && monthNum < minM.iMonth())
+                    continue;
+            }
+            monthsList.push(index.h("option", { key: monthNum, value: monthNum, selected: curMonth === monthNum }, this.months[i].name));
         }
-        return index.h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
+        return (index.h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList));
     }
 };
 MonthsList.style = monthsListCss;
@@ -8878,15 +9009,27 @@ const YearsList = class {
         let maxYear = this.maxYear;
         let minYear = this.minYear;
         if (this.maxDate) {
-            maxYear = momentHijri(this.maxDate, this.dateFormat).iYear();
+            const maxM = parseHijriDate(this.maxDate, this.dateFormat);
+            if (maxM) {
+                maxYear = maxM.iYear();
+            }
         }
         if (this.minDate) {
-            minYear = momentHijri(this.minDate, this.dateFormat).iYear();
+            const minM = parseHijriDate(this.minDate, this.dateFormat);
+            if (minM) {
+                minYear = minM.iYear();
+            }
         }
+        if (minYear > maxYear) {
+            const tmp = minYear;
+            minYear = maxYear;
+            maxYear = tmp;
+        }
+        const currentYear = this.currentTime ? this.currentTime.iYear() : minYear;
         for (let i = minYear; i <= maxYear; i++) {
-            yearsList.push(index.h("option", { key: i, value: i, selected: this.currentTime.iYear() == i }, i));
+            yearsList.push(index.h("option", { key: i, value: i, selected: currentYear === i }, i));
         }
-        return index.h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
+        return (index.h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList));
     }
 };
 YearsList.style = yearsListCss;

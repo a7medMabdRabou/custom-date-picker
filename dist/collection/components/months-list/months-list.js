@@ -1,5 +1,5 @@
 import { Component, Prop, h } from '@stencil/core';
-import moment from 'moment-hijri';
+import { parseHijriDate } from '../../utils/date-utils';
 export class MonthsList {
     constructor() {
         this.months = [
@@ -20,22 +20,27 @@ export class MonthsList {
     }
     render() {
         let monthsList = [];
+        const curYear = this.currentTime ? this.currentTime.iYear() : 1446;
+        const curMonth = this.currentTime ? this.currentTime.iMonth() : 0;
+        const maxM = this.maxDate ? parseHijriDate(this.maxDate, this.dateFormat) : null;
+        const minM = this.minDate ? parseHijriDate(this.minDate, this.dateFormat) : null;
         for (let i = 0; i < this.months.length; i++) {
-            if (this.maxDate) {
-                let maxDateMoment = moment(this.maxDate, this.dateFormat);
-                if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i].number > maxDateMoment.iMonth()) {
+            const monthNum = this.months[i].number;
+            if (maxM) {
+                if (curYear > maxM.iYear())
                     continue;
-                }
-            }
-            if (this.minDate) {
-                let minDateMoment = moment(this.minDate, this.dateFormat);
-                if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i].number < minDateMoment.iMonth()) {
+                if (curYear === maxM.iYear() && monthNum > maxM.iMonth())
                     continue;
-                }
             }
-            monthsList.push(h("option", { key: this.months[i].number, value: this.months[i].number, selected: this.currentTime.iMonth() == this.months[i].number }, this.months[i].name));
+            if (minM) {
+                if (curYear < minM.iYear())
+                    continue;
+                if (curYear === minM.iYear() && monthNum < minM.iMonth())
+                    continue;
+            }
+            monthsList.push(h("option", { key: monthNum, value: monthNum, selected: curMonth === monthNum }, this.months[i].name));
         }
-        return h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
+        return (h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList));
     }
     static get is() { return "months-list"; }
     static get encapsulation() { return "shadow"; }

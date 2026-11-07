@@ -4760,6 +4760,98 @@ var momentHijri = createCommonjsModule(function (module, exports) {
         }
     });
 });
+var STANDARD_HIJRI_FORMATS = [
+    'iYYYY/iMM/iDD',
+    'iYYYY-iMM-iDD',
+    'iYYYY/iM/iD',
+    'iYYYY-iM-iD',
+    'iDD/iMM/iYYYY',
+    'iDD-iMM-iYYYY',
+    'iD/iM/iYYYY',
+    'iD-iM-iYYYY'
+];
+/**
+ * Safely get the number of days in a Hijri month.
+ * Avoids the parseInt NaN bug on Arabic numerals in moment().iDaysInMonth().
+ */
+function getHijriDaysInMonth(year, monthZeroIndexed) {
+    try {
+        var days_1 = momentHijri.iDaysInMonth(year, monthZeroIndexed);
+        if (typeof days_1 === 'number' && !isNaN(days_1) && days_1 > 0) {
+            return days_1;
+        }
+    }
+    catch (e) { }
+    return 30;
+}
+/**
+ * Robustly parses any Hijri date string into a Moment object.
+ * Handles:
+ * - Standard moment parsing
+ * - Day clamping for months with 29 days (e.g. 1446/12/30 -> 1446/12/29)
+ * - YYYY/MM/DD, YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+ */
+function parseHijriDate(dateStr, preferredFormat) {
+    if (!dateStr)
+        return null;
+    var str = ('' + dateStr).trim();
+    if (!str)
+        return null;
+    // 1. Regex extraction for YYYY/MM/DD or YYYY-MM-DD
+    var ymdMatch = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+    if (ymdMatch) {
+        var y = parseInt(ymdMatch[1], 10);
+        var mIndex = parseInt(ymdMatch[2], 10) - 1;
+        var d = parseInt(ymdMatch[3], 10);
+        if (mIndex >= 0 && mIndex < 12 && y >= 1300 && y <= 1600) {
+            var maxDays = getHijriDaysInMonth(y, mIndex);
+            if (d > maxDays)
+                d = maxDays;
+            if (d < 1)
+                d = 1;
+            var res = momentHijri().iYear(y).iMonth(mIndex).iDate(d).startOf('day');
+            if (res && res.isValid && res.isValid())
+                return res;
+        }
+    }
+    // 2. Regex extraction for DD/MM/YYYY or DD-MM-YYYY
+    var dmyMatch = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (dmyMatch) {
+        var d = parseInt(dmyMatch[1], 10);
+        var mIndex = parseInt(dmyMatch[2], 10) - 1;
+        var y = parseInt(dmyMatch[3], 10);
+        if (mIndex >= 0 && mIndex < 12 && y >= 1300 && y <= 1600) {
+            var maxDays = getHijriDaysInMonth(y, mIndex);
+            if (d > maxDays)
+                d = maxDays;
+            if (d < 1)
+                d = 1;
+            var res = momentHijri().iYear(y).iMonth(mIndex).iDate(d).startOf('day');
+            if (res && res.isValid && res.isValid())
+                return res;
+        }
+    }
+    // 3. Preferred format
+    if (preferredFormat) {
+        try {
+            var m = momentHijri(str, preferredFormat, true);
+            if (m && m.isValid && m.isValid())
+                return m.startOf('day');
+        }
+        catch (e) { }
+    }
+    // 4. Standard formats individually
+    for (var _b = 0, STANDARD_HIJRI_FORMATS_1 = STANDARD_HIJRI_FORMATS; _b < STANDARD_HIJRI_FORMATS_1.length; _b++) {
+        var fmt = STANDARD_HIJRI_FORMATS_1[_b];
+        try {
+            var m = momentHijri(str, fmt, true);
+            if (m && m.isValid && m.isValid())
+                return m.startOf('day');
+        }
+        catch (e) { }
+    }
+    return null;
+}
 var dateCalenderCss = ".date-calender{width:266px;direction:rtl;background:#ffffff;padding:15px;border:1px solid #ddd;margin-top:2px;font-family:serif;box-sizing:unset;-webkit-box-sizing:unset;font-size:14px;border-radius:4px;z-index:1000;color:black !important}.date-calender-controls{direction:rtl;text-align:center}.control-button{position:absolute;border:0px;font-weight:bold;font-size:15px;cursor:pointer;background-color:#fff}.control-button:hover{color:#888888}.control-button:focus{outline:unset}.previous-button{right:15px}.next-button{left:15px}.date-calender-footer{margin-top:10px;text-align:center;border-top:1px solid #eee;padding-top:5px}.today-button{background:#f0f0f0;border:1px solid #ddd;padding:5px 15px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;width:100%;-webkit-transition:background 0.2s;transition:background 0.2s}.today-button:hover{background:#e0e0e0}";
 var DateCalender = /** @class */ (function () {
     function DateCalender(hostRef) {
@@ -4768,9 +4860,6 @@ var DateCalender = /** @class */ (function () {
         this.arabicDayNames = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
         this.arabicFullDayNames = ['احد', 'اثنين', 'ثلاثاء', 'اربعاء', 'خميس', 'جمعة', 'سبت'];
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-        /**
-         * The language code
-         */
         this.langCode = 'ar';
         this.dateFormat = 'iYYYY/iMM/iDD';
         this.selectedDate = '';
@@ -4778,158 +4867,192 @@ var DateCalender = /** @class */ (function () {
         this.disablePast = false;
         this.hideToday = false;
         this.subtractMonth = function () {
-            _this_1.currentTime = _this_1.currentTime.clone().subtract(1, 'iMonth');
+            var prev = _this_1.currentTime.clone().subtract(1, 'iMonth');
+            var maxDays = getHijriDaysInMonth(prev.iYear(), prev.iMonth());
+            if (prev.iDate() > maxDays)
+                prev.iDate(maxDays);
+            _this_1.currentTime = _this_1.clampTimeToRange(prev);
         };
         this.addMonth = function () {
-            _this_1.currentTime = _this_1.currentTime.clone().add(1, 'iMonth');
+            var next = _this_1.currentTime.clone().add(1, 'iMonth');
+            var maxDays = getHijriDaysInMonth(next.iYear(), next.iMonth());
+            if (next.iDate() > maxDays)
+                next.iDate(maxDays);
+            _this_1.currentTime = _this_1.clampTimeToRange(next);
         };
         this.setSelectedDate = function (event) {
             var time = _this_1.currentTime.clone();
             time.iDate(parseInt(event.target.value, 10));
             var selectedDate = time.format(_this_1.dateFormat);
-            // We shouldn't mutate the prop directly if not intended, but keeping consistent with existing logic pattern
-            // However, setParentSelectedDate is the key.
             if (_this_1.setParentSelectedDate) {
                 _this_1.setParentSelectedDate(selectedDate, true, true);
             }
         };
         this.handleYearChange = function (event) {
-            // Clone to avoid mutating state directly
-            var time = _this_1.currentTime.clone();
-            time.iYear(parseInt(event.target.value, 10));
-            var selectedDate = time.format(_this_1.dateFormat);
-            if (_this_1.setParentSelectedDate) {
-                _this_1.setParentSelectedDate(selectedDate, true, false);
+            var newYear = parseInt(event.target.value, 10);
+            var time = _this_1.currentTime.clone().iYear(newYear);
+            var maxDays = getHijriDaysInMonth(time.iYear(), time.iMonth());
+            if (time.iDate() > maxDays) {
+                time.iDate(maxDays);
             }
+            time = _this_1.clampTimeToRange(time);
+            _this_1.currentTime = time;
         };
         this.handleMonthChange = function (event) {
-            var time = _this_1.currentTime.clone();
-            time.iMonth(parseInt(event.target.value, 10));
-            var selectedDate = time.format(_this_1.dateFormat);
-            if (_this_1.setParentSelectedDate) {
-                _this_1.setParentSelectedDate(selectedDate, true, false);
+            var newMonth = parseInt(event.target.value, 10);
+            var time = _this_1.currentTime.clone().iMonth(newMonth);
+            var maxDays = getHijriDaysInMonth(time.iYear(), time.iMonth());
+            if (time.iDate() > maxDays) {
+                time.iDate(maxDays);
             }
+            time = _this_1.clampTimeToRange(time);
+            _this_1.currentTime = time;
         };
         this.selectToday = function () {
-            // 1. Set current time to today
-            // Fix: User reported Hijri date is 1 day behind. Adding 1 day to match observation.
+            if (!_this_1.isTodayAllowed())
+                return;
             _this_1.currentTime = momentHijri().add(1, 'day');
-            // 2. Format it according to the requested format
             var todayStr = _this_1.currentTime.format(_this_1.dateFormat);
-            // 3. Update parent
             if (_this_1.setParentSelectedDate) {
                 _this_1.setParentSelectedDate(todayStr, true, true);
             }
         };
     }
     DateCalender.prototype.componentWillLoad = function () {
-        this.currentTime = this.getMoment(this.selectedDate);
+        var initialTime = parseHijriDate(this.selectedDate, this.dateFormat) || momentHijri();
+        this.currentTime = this.clampTimeToRange(initialTime);
     };
-    DateCalender.prototype.getFormats = function () {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
+    DateCalender.prototype.watchSelectedDate = function (newValue) {
+        var parsed = parseHijriDate(newValue, this.dateFormat);
+        if (parsed) {
+            this.currentTime = this.clampTimeToRange(parsed);
+        }
     };
-    DateCalender.prototype.getMoment = function (dateStr) {
-        if (!dateStr)
-            return momentHijri();
-        var m = momentHijri(dateStr, this.getFormats(), true);
-        return m.isValid() ? m : momentHijri();
+    DateCalender.prototype.watchConstraints = function () {
+        this.currentTime = this.clampTimeToRange(this.currentTime);
     };
-    DateCalender.prototype.watchHandler = function (newValue) {
-        this.currentTime = this.getMoment(newValue);
+    DateCalender.prototype.clampTimeToRange = function (time) {
+        if (!time)
+            time = momentHijri();
+        var t = time.clone();
+        var maxStr = this.getEffectiveMaxDate();
+        var minStr = this.getEffectiveMinDate();
+        if (maxStr) {
+            var maxM = parseHijriDate(maxStr, this.dateFormat);
+            if (maxM && t.isAfter(maxM, 'day')) {
+                t = maxM.clone();
+            }
+        }
+        if (minStr) {
+            var minM = parseHijriDate(minStr, this.dateFormat);
+            if (minM && t.isBefore(minM, 'day')) {
+                t = minM.clone();
+            }
+        }
+        return t;
     };
     DateCalender.prototype.getEffectiveMaxDate = function () {
-        var effectiveMaxDate = this.maxDate;
-        // Check for any variant of "truthy" for disableFuture
+        var effectiveMax = this.maxDate || this.max || null;
         var df = this.disableFuture;
         var isFutureDisabled = df === true || df === 'true' || df === '' || df === 'disable-future';
         if (isFutureDisabled) {
-            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" (21st) is enabled
             var todayObj = momentHijri().add(1, 'day');
-            var today = todayObj.format(this.dateFormat);
-            if (!effectiveMaxDate) {
-                return today;
+            var todayStr = todayObj.format(this.dateFormat);
+            if (!effectiveMax) {
+                return todayStr;
             }
-            var todayMoment = todayObj;
-            var maxMoment = momentHijri(effectiveMaxDate, this.getFormats(), true);
-            if (!maxMoment.isValid())
-                return today;
-            if (todayMoment.isBefore(maxMoment, 'day')) {
-                return today;
+            var maxM = parseHijriDate(effectiveMax, this.dateFormat);
+            if (!maxM)
+                return todayStr;
+            if (todayObj.isBefore(maxM, 'day')) {
+                return todayStr;
             }
         }
-        return effectiveMaxDate;
+        return effectiveMax;
     };
     DateCalender.prototype.getEffectiveMinDate = function () {
-        var effectiveMinDate = this.minDate;
+        var effectiveMin = this.minDate || this.min || null;
         var dp = this.disablePast;
         var isPastDisabled = dp === true || dp === 'true' || dp === '' || dp === 'disable-past';
         if (isPastDisabled) {
-            // Fix: Account for +1 day discrepancy in Hijri calendar so "Today" is enabled
             var todayObj = momentHijri().add(1, 'day');
-            var today = todayObj.format(this.dateFormat);
-            if (!effectiveMinDate) {
-                return today;
+            var todayStr = todayObj.format(this.dateFormat);
+            if (!effectiveMin) {
+                return todayStr;
             }
-            var todayMoment = todayObj;
-            var minMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
-            if (!minMoment.isValid())
-                return today;
-            if (todayMoment.isAfter(minMoment, 'day')) {
-                return today;
+            var minM = parseHijriDate(effectiveMin, this.dateFormat);
+            if (!minM)
+                return todayStr;
+            if (todayObj.isAfter(minM, 'day')) {
+                return todayStr;
             }
         }
-        return effectiveMinDate;
+        return effectiveMin;
     };
     DateCalender.prototype.isBeforeMinMonth = function () {
-        var effectiveMinDate = this.getEffectiveMinDate();
-        if (!effectiveMinDate)
+        var minStr = this.getEffectiveMinDate();
+        if (!minStr || !this.currentTime)
             return false;
-        var minDateMoment = momentHijri(effectiveMinDate, this.getFormats(), true);
-        if (!minDateMoment.isValid())
+        var minM = parseHijriDate(minStr, this.dateFormat);
+        if (!minM)
             return false;
-        var prevMonth = this.currentTime.clone().subtract(1, 'iMonth').endOf('iMonth');
-        return prevMonth.isBefore(minDateMoment, 'day');
+        var prevMonth = this.currentTime.clone().subtract(1, 'iMonth');
+        var maxDays = getHijriDaysInMonth(prevMonth.iYear(), prevMonth.iMonth());
+        prevMonth.iDate(maxDays).startOf('day');
+        return prevMonth.isBefore(minM, 'day');
     };
     DateCalender.prototype.isAfterMaxMonth = function () {
-        var effectiveMaxDate = this.getEffectiveMaxDate();
-        if (!effectiveMaxDate)
+        var maxStr = this.getEffectiveMaxDate();
+        if (!maxStr || !this.currentTime)
             return false;
-        // Check if the max date is valid
-        var maxDateMoment = momentHijri(effectiveMaxDate, this.getFormats(), true);
-        if (!maxDateMoment.isValid())
+        var maxM = parseHijriDate(maxStr, this.dateFormat);
+        if (!maxM)
             return false;
-        var nextMonth = this.currentTime.clone().add(1, 'iMonth').startOf('iMonth');
-        return nextMonth.isAfter(maxDateMoment, 'day');
-    };
-    DateCalender.prototype.getMonthStartDayName = function () {
-        var time = this.currentTime;
-        time.startOf('iMonth');
-        return time.format('dd');
+        var nextMonth = this.currentTime.clone().add(1, 'iMonth').iDate(1).startOf('day');
+        return nextMonth.isAfter(maxM, 'day');
     };
     DateCalender.prototype.getMonthName = function () {
+        if (!this.currentTime)
+            return '';
         return this.currentTime.format('iMMMM') + ' (' + this.currentTime.format('iMM') + ') ' + this.currentTime.format('iYYYY');
+    };
+    DateCalender.prototype.isTodayAllowed = function () {
+        var todayObj = momentHijri().add(1, 'day').startOf('day');
+        var maxStr = this.getEffectiveMaxDate();
+        var minStr = this.getEffectiveMinDate();
+        if (maxStr) {
+            var maxM = parseHijriDate(maxStr, this.dateFormat);
+            if (maxM && todayObj.isAfter(maxM, 'day'))
+                return false;
+        }
+        if (minStr) {
+            var minM = parseHijriDate(minStr, this.dateFormat);
+            if (minM && todayObj.isBefore(minM, 'day'))
+                return false;
+        }
+        return true;
     };
     DateCalender.prototype.render = function () {
         var isTodayHidden = this.hideToday === true || this.hideToday === 'true' || this.hideToday === '' || this.hideToday === 'hide-today';
         var todayLabel = this.todayText || (this.langCode === 'ar' ? 'اليوم' : 'Today');
+        var canSelectToday = this.isTodayAllowed();
         var todayBtnStyle = {};
         if (this.bgcolor)
             todayBtnStyle.backgroundColor = this.bgcolor;
         if (this.textColor)
             todayBtnStyle.color = this.textColor;
-        return h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }), !isTodayHidden && (h("div", { class: 'date-calender-footer' }, h("button", { class: 'today-button', onClick: this.selectToday, type: "button", style: todayBtnStyle }, todayLabel))));
+        return (h("div", { class: 'date-calender' }, h("div", { class: 'date-calender-controls' }, h("button", { class: 'control-button previous-button', onClick: this.subtractMonth, type: "button", disabled: this.isBeforeMinMonth() }, '<'), h("strong", { class: 'month-name' }, this.getMonthName()), h("button", { class: 'control-button next-button', onClick: this.addMonth, type: "button", disabled: this.isAfterMaxMonth() }, " ", '>', " "), h("div", null, h("years-list", { currentTime: this.currentTime, handleYearChange: this.handleYearChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }), h("months-list", { currentTime: this.currentTime, handleMonthChange: this.handleMonthChange, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), dateFormat: this.dateFormat }))), h("day-names", { langCode: this.langCode }), h("month-days", { currentTime: this.currentTime, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), bgcolor: this.bgcolor, selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor }), !isTodayHidden && (h("div", { class: 'date-calender-footer' }, h("button", { class: "today-button " + (!canSelectToday ? 'disabled' : ''), onClick: this.selectToday, type: "button", disabled: !canSelectToday, style: todayBtnStyle }, todayLabel)))));
     };
     Object.defineProperty(DateCalender, "watchers", {
         get: function () {
             return {
-                "selectedDate": ["watchHandler"]
+                "selectedDate": ["watchSelectedDate"],
+                "minDate": ["watchConstraints"],
+                "min": ["watchConstraints"],
+                "maxDate": ["watchConstraints"],
+                "max": ["watchConstraints"],
+                "disableFuture": ["watchConstraints"],
+                "disablePast": ["watchConstraints"]
             };
         },
         enumerable: false,
@@ -7433,24 +7556,39 @@ var DatepickerHijri = /** @class */ (function () {
     DatepickerHijri.prototype.shouldCloseOnDateSelect = function () {
         return this.onDateSelectClose !== false && this.onDateSelectClose !== 'false';
     };
-    // List of supported formats for robust parsing
-    DatepickerHijri.prototype.getSupportedFormats = function () {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
+    DatepickerHijri.prototype.getEffectiveMaxDate = function () {
+        if (this.maxDate)
+            return this.maxDate;
+        if (this.max)
+            return this.max;
+        if (this.reference) {
+            var refEl = document.querySelector('#' + this.reference);
+            if (refEl) {
+                return refEl.getAttribute('max-date') || refEl.getAttribute('max') || null;
+            }
+        }
+        return null;
+    };
+    DatepickerHijri.prototype.getEffectiveMinDate = function () {
+        if (this.minDate)
+            return this.minDate;
+        if (this.min)
+            return this.min;
+        if (this.reference) {
+            var refEl = document.querySelector('#' + this.reference);
+            if (refEl) {
+                return refEl.getAttribute('min-date') || refEl.getAttribute('min') || null;
+            }
+        }
+        return null;
     };
     DatepickerHijri.prototype.handleOnfocus = function () {
         if (this.disabled === true || this.disabled === 'true' || this.disabled === '')
             return;
         var reference = document.querySelector('#' + this.reference);
-        if (reference) {
-            var m = momentHijri(reference.value, this.getSupportedFormats(), true);
-            if (m && m.isValid && m.isValid()) {
+        if (reference && reference.value) {
+            var m = parseHijriDate(reference.value, this.dateFormat);
+            if (m) {
                 this.selectedDate = reference.value;
             }
         }
@@ -7507,15 +7645,11 @@ var DatepickerHijri = /** @class */ (function () {
     };
     DatepickerHijri.prototype.componentWillLoad = function () {
         this.calenderContainerId = uuid_1('datepicker-hijri');
-        // This will fix the datepicker when the selected date is null or empty (only if reference exists yet)
         var refEl = this.reference ? document.querySelector('#' + this.reference) : null;
-        var formats = this.getSupportedFormats();
-        if (refEl && !momentHijri(this.selectedDate, formats, true).isValid()) {
-            var selectedDate;
+        if (refEl) {
             var currentVal = refEl.getAttribute('value');
-            if (currentVal && momentHijri(currentVal, formats, true).isValid()) {
-                selectedDate = currentVal;
-                this.selectedDate = selectedDate;
+            if (currentVal && parseHijriDate(currentVal, this.dateFormat)) {
+                this.selectedDate = currentVal;
                 this.setSelectedDate(this.selectedDate, false, false);
             }
         }
@@ -7543,7 +7677,6 @@ var DatepickerHijri = /** @class */ (function () {
     };
     DatepickerHijri.prototype.componentDidLoad = function () {
         var _this_1 = this;
-        // React/MUI may render the input after this component; retry until reference exists
         var tryAttach = function (attempt) {
             var refEl = _this_1.reference ? document.querySelector('#' + _this_1.reference) : null;
             if (refEl) {
@@ -7557,7 +7690,11 @@ var DatepickerHijri = /** @class */ (function () {
         tryAttach(0);
     };
     DatepickerHijri.prototype.render = function () {
-        return h("div", { id: this.calenderContainerId, style: { 'visibility': this.displayCalender ? 'visible' : 'hidden', 'z-index': this.zIndex || '99999', 'margin': '5px' } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.maxDate, minDate: this.minDate, disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText }));
+        return (h("div", { id: this.calenderContainerId, style: {
+                'visibility': this.displayCalender ? 'visible' : 'hidden',
+                'z-index': this.zIndex || '99999',
+                'margin': '5px'
+            } }, h("date-calender", { langCode: this.langCode, dateFormat: this.dateFormat, selectedDate: this.selectedDate, setParentSelectedDate: this.setSelectedDate, maxDate: this.getEffectiveMaxDate(), minDate: this.getEffectiveMinDate(), disableFuture: this.disableFuture, disablePast: this.disablePast, bgcolor: this.getEffectiveBgColor(), selectedColor: this.selectedColor, textColor: this.textColor, selectedTextColor: this.selectedTextColor, hideToday: this.hideToday, todayText: this.todayText })));
     };
     return DatepickerHijri;
 }());
@@ -7591,53 +7728,41 @@ var MonthDays = /** @class */ (function () {
         registerInstance(this, hostRef);
         this.englishDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     }
-    MonthDays.prototype.getFormats = function () {
-        return [
-            this.dateFormat,
-            'iYYYY-iMM-iDD', 'iYYYY/iMM/iDD',
-            'iYYYY-iM-iD', 'iYYYY/iM/iD',
-            'iDD-iMM-iYYYY', 'iDD/iMM/iYYYY',
-            'iD-iM-iYYYY', 'iD/iM/iYYYY',
-            'iYYYY-iD-iM', 'iYYYY/iD/iM'
-        ];
-    };
     MonthDays.prototype.getMonthStartDayName = function () {
         var time = this.currentTime.clone();
         time.startOf('iMonth');
         return time.format('dd');
     };
     MonthDays.prototype.monthDays = function () {
-        return this.currentTime.iDaysInMonth();
+        if (!this.currentTime)
+            return 30;
+        return getHijriDaysInMonth(this.currentTime.iYear(), this.currentTime.iMonth());
     };
     MonthDays.prototype.isSelectedDate = function (i) {
-        if (!this.selectedDate)
+        if (!this.selectedDate || !this.currentTime)
             return false;
-        var time = this.currentTime.clone();
-        time.iDate(parseInt(i, 10));
-        var selected = momentHijri(this.selectedDate, this.getFormats(), true);
-        if (!selected.isValid())
+        var selected = parseHijriDate(this.selectedDate, this.dateFormat);
+        if (!selected)
             return false;
-        return time.isSame(selected, 'day');
+        var dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
+        return dayMoment.isSame(selected, 'day');
     };
     MonthDays.prototype.isAfterMaxDate = function (i) {
-        if (!this.maxDate)
+        if (!this.maxDate || !this.currentTime)
             return false;
-        var dayMoment = this.currentTime.clone();
-        dayMoment.iDate(parseInt(i, 10));
-        // Parse the max date string
-        var maxMoment = momentHijri(this.maxDate, this.getFormats(), true);
-        if (!maxMoment.isValid())
+        var maxMoment = parseHijriDate(this.maxDate, this.dateFormat);
+        if (!maxMoment)
             return false;
+        var dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
         return dayMoment.isAfter(maxMoment, 'day');
     };
     MonthDays.prototype.isBeforeMinDate = function (i) {
-        if (!this.minDate)
+        if (!this.minDate || !this.currentTime)
             return false;
-        var dayMoment = this.currentTime.clone();
-        dayMoment.iDate(parseInt(i, 10));
-        var minMoment = momentHijri(this.minDate, this.getFormats(), true);
-        if (!minMoment.isValid())
+        var minMoment = parseHijriDate(this.minDate, this.dateFormat);
+        if (!minMoment)
             return false;
+        var dayMoment = this.currentTime.clone().iDate(parseInt(i, 10)).startOf('day');
         return dayMoment.isBefore(minMoment, 'day');
     };
     MonthDays.prototype.render = function () {
@@ -7645,7 +7770,8 @@ var MonthDays = /** @class */ (function () {
         for (var i_1 = this.englishDayNames.indexOf(this.getMonthStartDayName()); i_1 > 0; i_1--) {
             daysList.push(h("div", { class: 'month-day no-hover', key: daysList.length.toString() }));
         }
-        for (var i_2 = 1; i_2 < this.monthDays() + 1; i_2++) {
+        var totalDays = this.monthDays();
+        for (var i_2 = 1; i_2 <= totalDays; i_2++) {
             var isFuture = this.isAfterMaxDate(i_2);
             var isPastDisabled = this.isBeforeMinDate(i_2);
             var isDisabled = isFuture || isPastDisabled;
@@ -7660,12 +7786,12 @@ var MonthDays = /** @class */ (function () {
             if (isSelected && this.selectedTextColor) {
                 btnStyle.color = this.selectedTextColor;
             }
-            else if (!isSelected && !isDisabled && this.textColor) {
+            else if (this.textColor) {
                 btnStyle.color = this.textColor;
             }
-            daysList.push(h("div", { class: 'month-day ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), key: daysList.length.toString() }, h("button", { class: 'month-day-button ' + (isSelected ? 'selected' : '') + (isDisabled ? ' disabled' : ''), onClick: this.setSelectedDate, value: i_2, type: "button", disabled: isDisabled, style: btnStyle }, i_2)));
+            daysList.push(h("button", { class: "month-day " + (isDisabled ? 'disabled' : '') + " " + (isSelected ? 'selected' : ''), type: 'button', disabled: isDisabled, style: btnStyle, onClick: this.setSelectedDate, value: i_2 }, i_2));
         }
-        return h("div", { class: 'month-days' }, daysList);
+        return (h("div", { class: 'month-days' }, daysList));
     };
     return MonthDays;
 }());
@@ -7692,22 +7818,27 @@ var MonthsList = /** @class */ (function () {
     }
     MonthsList.prototype.render = function () {
         var monthsList = [];
+        var curYear = this.currentTime ? this.currentTime.iYear() : 1446;
+        var curMonth = this.currentTime ? this.currentTime.iMonth() : 0;
+        var maxM = this.maxDate ? parseHijriDate(this.maxDate, this.dateFormat) : null;
+        var minM = this.minDate ? parseHijriDate(this.minDate, this.dateFormat) : null;
         for (var i_3 = 0; i_3 < this.months.length; i_3++) {
-            if (this.maxDate) {
-                var maxDateMoment = momentHijri(this.maxDate, this.dateFormat);
-                if (this.currentTime.iYear() === maxDateMoment.iYear() && this.months[i_3].number > maxDateMoment.iMonth()) {
+            var monthNum = this.months[i_3].number;
+            if (maxM) {
+                if (curYear > maxM.iYear())
                     continue;
-                }
-            }
-            if (this.minDate) {
-                var minDateMoment = momentHijri(this.minDate, this.dateFormat);
-                if (this.currentTime.iYear() === minDateMoment.iYear() && this.months[i_3].number < minDateMoment.iMonth()) {
+                if (curYear === maxM.iYear() && monthNum > maxM.iMonth())
                     continue;
-                }
             }
-            monthsList.push(h("option", { key: this.months[i_3].number, value: this.months[i_3].number, selected: this.currentTime.iMonth() == this.months[i_3].number }, this.months[i_3].name));
+            if (minM) {
+                if (curYear < minM.iYear())
+                    continue;
+                if (curYear === minM.iYear() && monthNum < minM.iMonth())
+                    continue;
+            }
+            monthsList.push(h("option", { key: monthNum, value: monthNum, selected: curMonth === monthNum }, this.months[i_3].name));
         }
-        return h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList);
+        return (h("select", { class: "months-list", onChange: this.handleMonthChange }, monthsList));
     };
     return MonthsList;
 }());
@@ -7725,15 +7856,27 @@ var YearsList = /** @class */ (function () {
         var maxYear = this.maxYear;
         var minYear = this.minYear;
         if (this.maxDate) {
-            maxYear = momentHijri(this.maxDate, this.dateFormat).iYear();
+            var maxM = parseHijriDate(this.maxDate, this.dateFormat);
+            if (maxM) {
+                maxYear = maxM.iYear();
+            }
         }
         if (this.minDate) {
-            minYear = momentHijri(this.minDate, this.dateFormat).iYear();
+            var minM = parseHijriDate(this.minDate, this.dateFormat);
+            if (minM) {
+                minYear = minM.iYear();
+            }
         }
+        if (minYear > maxYear) {
+            var tmp = minYear;
+            minYear = maxYear;
+            maxYear = tmp;
+        }
+        var currentYear = this.currentTime ? this.currentTime.iYear() : minYear;
         for (var i_4 = minYear; i_4 <= maxYear; i_4++) {
-            yearsList.push(h("option", { key: i_4, value: i_4, selected: this.currentTime.iYear() == i_4 }, i_4));
+            yearsList.push(h("option", { key: i_4, value: i_4, selected: currentYear === i_4 }, i_4));
         }
-        return h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList);
+        return (h("select", { class: "years-list", onChange: this.handleYearChange }, yearsList));
     };
     return YearsList;
 }());
